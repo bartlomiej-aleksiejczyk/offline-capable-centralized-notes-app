@@ -1,8 +1,4 @@
 # notes/views.py
-from django.http import HttpResponseBadRequest
-from django.shortcuts import render, get_object_or_404, redirect
-
-from .models import Note, Directory
 
 
 def note_list(request):
@@ -86,22 +82,28 @@ def note_create(request):
     return render(request, 'notes/note_form.html', {'directories': directories})
 
 
+from django.http import HttpResponseBadRequest
+from django.shortcuts import render, redirect, get_object_or_404
+
+from .models import Directory, Note
+
+
 def directory_list(request):
     """
     Display a list of all directories and their notes (on the right).
-    Allows creation, renaming, and deletion of directories using prompt/confirm.
+    Allows creation, renaming, and deletion of directories using prompt/confirm,
+    and includes a "Not specified" directory for notes with no directory.
     """
     if request.method == 'POST':
         action = request.POST.get('action')
-
-        # CREATE a new directory
+        # CREATE
         if action == 'create':
             dir_title = request.POST.get('directory_title', '').strip()
             if dir_title:
                 Directory.objects.create(title=dir_title)
             return redirect('notes:directory_list')
 
-        # RENAME an existing directory
+        # RENAME
         elif action == 'rename':
             directory_id = request.POST.get('directory_id')
             new_title = request.POST.get('new_title', '').strip()
@@ -111,7 +113,7 @@ def directory_list(request):
                 directory.save()
             return redirect('notes:directory_list')
 
-        # DELETE an existing directory
+        # DELETE
         elif action == 'delete':
             directory_id = request.POST.get('directory_id')
             if directory_id:
@@ -119,19 +121,37 @@ def directory_list(request):
                 directory.delete()
             return redirect('notes:directory_list')
 
-        # If some unknown action, just return a 400 or redirect
         return HttpResponseBadRequest("Invalid action.")
 
-    # GET request: just display the directories and their notes
-    directories = Directory.objects.all().order_by('index', 'title')
-    # If you want to get notes under each directory, you can do so in the template
-    # or gather them here. For instance:
+    # Handle GET: list directories + notes
+    directories = list(Directory.objects.all().order_by('index', 'title'))
+
+    # Check if there are any notes without a directory
+    notes_without_dir = Note.objects.filter(directory__isnull=True).order_by('index', 'title')
+    has_unassigned = notes_without_dir.exists()
+
+    # Create a "synthetic" directory object for "Not specified"
+    # if there are unassigned notes.
+    # We give it a special ID of 0 (or any sentinel value).
+    if has_unassigned:
+        not_specified_dir = Directory(
+            id=0,
+            title="Not specified"  # You can change this label to your liking
+        )
+        # Insert it at the top or anywhere you want
+        directories.insert(0, not_specified_dir)
+
+    # Build up the list of (directory, notes) for the right content area
     dir_with_notes = []
     for d in directories:
-        dir_with_notes.append((d, d.notes.order_by('index', 'title')))
+        if d.id == 0:
+            # Our synthetic "Not specified" directory
+            dir_with_notes.append((d, notes_without_dir))
+        else:
+            dir_with_notes.append((d, d.notes.order_by('index', 'title')))
 
     context = {
-        'directories': directories,  # for the sidebar
-        'directories_with_notes': dir_with_notes,  # for right content area
+        'directories': directories,  # For the sidebar
+        'directories_with_notes': dir_with_notes,  # For the right content area
     }
     return render(request, 'notes/directory_list.html', context)
