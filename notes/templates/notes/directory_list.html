@@ -1,6 +1,9 @@
 {% extends "base_layout.html" %}
 {% load static %}
 
+{% block title %}
+    View Directories
+{% endblock title %}
 {% block layout %}
     <!-- Main Directory Container -->
     <div class="notes-directory">
@@ -62,8 +65,6 @@
                         <div class="notes-directory-content__directory">
                             <div class="notes-directory-content__directory-header">
                                 <span class="notes-directory-content__directory-title">{{ directory.title }}</span>
-                                <!-- Collapsible toggle button (simple example) -->
-                                {# TODO: add button icon change on collapse/expand, make button header-wide#}
                                 <button class="notes-directory-content__btn notes-directory-content__btn--collapse"
                                         onclick="toggleCollapse(this)">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="notes-directory-content__icon"

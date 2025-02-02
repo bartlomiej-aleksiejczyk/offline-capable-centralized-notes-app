@@ -29,22 +29,44 @@ def note_list(request):
                 note = get_object_or_404(Note, pk=note_id)
                 note.delete()
             return redirect('notes:note_list')
-        
+
     # Handle the GET case: show directories + notes
     directory_id = request.GET.get('directory')
     directories = Directory.objects.all().order_by('index', 'title')
+    selected_note_id = request.GET.get('note')
 
     if directory_id:
         notes = Note.objects.filter(directory_id=directory_id).order_by('index', 'title')
     else:
         notes = Note.objects.all().order_by('directory', 'index', 'title')
+    selected_note = None
+
+    if selected_note_id:
+        # If we store note ID in ?note=123
+        selected_note = get_object_or_404(Note, pk=selected_note_id)
 
     context = {
         'directory_list': directories,
         'selected_directory': directory_id,
         'notes': notes,
+        'selected_note': selected_note,
     }
     return render(request, 'notes/note_list.html', context)
+
+
+# TODO: check csrf safety
+def ajax_update_note(request, note_id):
+    """
+    Receives an Ajax POST with 'content' to update the note's content.
+    Returns JSON status.
+    """
+    if request.method == 'POST':
+        new_content = request.POST.get('content', '')
+        note = get_object_or_404(Note, pk=note_id)
+        note.content = new_content
+        note.save()
+        return JsonResponse({'status': 'ok', 'note_id': note_id})
+    return JsonResponse({'status': 'error', 'message': 'Only POST allowed'}, status=400)
 
 
 def note_detail(request, slug):
@@ -94,7 +116,7 @@ def note_create(request):
     return render(request, 'notes/note_form.html', {'directories': directories})
 
 
-from django.http import HttpResponseBadRequest
+from django.http import HttpResponseBadRequest, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 
 from .models import Directory, Note

@@ -1,6 +1,8 @@
 {% extends "base_layout.html" %}
 {% load static %}
-
+{% block title %}
+    View Notes
+{% endblock title %}
 {% block layout %}
     <div class="notes-layout">
         <!-- LEFT SIDEBAR -->
@@ -34,7 +36,8 @@
                 {% for note in notes %}
                     <div class="note-titles-list__item">
                         <div class="note-titles-list__select-button">
-                            <a href="{{ note.get_absolute_url }}" class="note-titles-list__text">
+                            <a href="?{% if selected_directory %}directory={{ selected_directory }}&{% endif %}note={{ note.id }}"
+                               class="note-titles-list__text">
                                 {{ note.title|truncatechars:30 }}
                             </a>
                         </div>
@@ -63,9 +66,23 @@
 
         <!-- RIGHT AREA: if no note is selected, just show a placeholder -->
         <div class="notes-display">
-            <div class="notes-display__no-content">
-                <h3>Select a note to see details.</h3>
-            </div>
+            {% if selected_note %}
+                <div class="notes-display__header">
+                    <h3>{{ selected_note.title }}</h3>
+                </div>
+                <div class="notes-display__content" style="display: flex; flex-direction: column;">
+                <textarea id="noteContent"
+                          class="notes-display__textarea"
+                          style="flex:1; resize: none;"
+                          oninput="debounceSave()">
+                    {{ selected_note.content }}
+                </textarea>
+                </div>
+            {% else %}
+                <div class="notes-display__no-content">
+                    <h3>Select a note to see details.</h3>
+                </div>
+            {% endif %}
         </div>
     </div>
 
@@ -96,6 +113,43 @@
                 document.getElementById('note_title_input').value = noteTitle.trim();
                 document.getElementById('create_note_form').submit();
             }
+        }
+
+        // DEBOUNCE logic for note updates
+        let debounceTimer = null;
+
+        function debounceSave() {
+            if (debounceTimer) clearTimeout(debounceTimer);
+            // 1 second delay after user stops typing
+            debounceTimer = setTimeout(saveNoteContent, 1000);
+        }
+
+        function saveNoteContent() {
+            const content = document.getElementById('noteContent').value;
+            const noteId = '{% if selected_note %}{{ selected_note.id }}{% endif %}'
+            if (!noteId) return;
+
+            // Example: we do an Ajax POST to /notes/update/<note_id>/
+            const url = "{% url 'notes:ajax_update_note' 0 %}".replace('/0/', '/' + noteId + '/');
+
+            // Use Fetch API or XHR
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({content: content})
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'ok') {
+                        console.log("Note updated successfully");
+                    } else {
+                        console.error("Error updating note:", data);
+                    }
+                })
+                .catch(err => console.error("Ajax error:", err));
         }
 
         // RENAME Note prompt
