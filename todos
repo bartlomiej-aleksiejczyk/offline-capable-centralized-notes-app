@@ -1,0 +1,20 @@
+===
+FIRST_STAGE
+===
+# TODO: Add responsiveness for: main navbar, note page, directory page, split note page on 2 when mobile add an icon
+# TODO: add style and search to the choose directory box
+# TODO: Add drag and drop note/directory sorting
+# TODO: Add default note feature
+===
+SECOND_STAGE
+===
+# TODO: Add auth and permissions
+# TODO: Add bruteforce protection, harden security
+# TODO: prepare production-ready config
+===
+NON_IMPORTANT
+===
+# TODO: add button icon change on collapse/expand, make button header-wide
+# TODO: Add animations to actions like collapse remove add
+# TODO: Add loading spinner to all actions
+# TODO: use htmx/jquery/own solution for better user interactivity, remove full page reload
