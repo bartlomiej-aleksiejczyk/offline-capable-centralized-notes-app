@@ -10,13 +10,19 @@ def note_list(request):
         # We only expect 'create_directory' action from the JS prompt
         action = request.POST.get('action')
         if action == 'create_note':
-            print('dupa')
             note_title = request.POST.get('note_title', '').strip()
             if note_title:
                 # Create the new Directory
                 Note.objects.create(title=note_title)
             # After creating directory (or if empty), redirect to GET
             return redirect('notes:note_list')
+        if action == 'rename_note':
+            note_id = request.POST.get('note_id')
+            new_title = request.POST.get('new_title', '').strip()
+            if note_id and new_title:
+                note = get_object_or_404(Note, pk=note_id)
+                note.title = new_title
+                note.save()
 
     # Handle the GET case: show directories + notes
     directory_id = request.GET.get('directory')
