@@ -1,0 +1,138 @@
+{% extends "base_layout.html" %}
+{% load static %}
+
+{% block layout %}
+    <!-- Main Directory Container -->
+    <div class="notes-directory">
+        <div class="notes-directory">
+
+            <!-- LEFT SIDEBAR -->
+            <div class="notes-directory__sidebar">
+                <div class="notes-directory-sidebar">
+                    <h2 class="notes-directory-sidebar__title">Directories</h2>
+                    <!-- Button to CREATE new directory (JS prompt) -->
+                    <button class="button" onclick="createDirectoryPrompt()">New Directory</button>
+
+                    <!-- Directory List -->
+                    <ul class="notes-directory-sidebar__list">
+                        {% for directory in directories %}
+                            <li class="notes-directory-sidebar__list-item">
+                                <!-- Directory Title -->
+                                <span class="notes-directory-sidebar__directory-title">
+                {{ directory.title }}
+              </span>
+                                <!-- Buttons for rename/delete -->
+                                <div class="note-titles-list__button-area">
+                                    <!-- Delete Button -->
+                                    <button class="icon-button"
+                                            onclick="deleteDirectoryConfirm('{{ directory.id }}', '{{ directory.title }}')">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon-button__icon" height="18px"
+                                             width="18px" viewBox="0 -960 960 960">
+                                            <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/>
+                                        </svg>
+                                    </button>
+                                    <!-- Rename Button -->
+                                    <button class="icon-button"
+                                            onclick="renameDirectoryPrompt('{{ directory.id }}', '{{ directory.title }}')">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon-button__icon" height="18px"
+                                             width="18px" viewBox="0 -960 960 960">
+                                            <path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </li>
+                        {% empty %}
+                            <p>No directories created yet.</p>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+            <!-- RIGHT CONTENT (show directories with their notes) -->
+            <div class="notes-directory__content">
+                <div class="notes-directory-content">
+                    <h3 class="notes-directory-content__title">Manage directories' content</h3>
+
+                    {% for directory, notes in directories_with_notes %}
+                        <div class="notes-directory-content__directory">
+                            <div class="notes-directory-content__directory-header">
+                                <span class="notes-directory-content__directory-title">{{ directory.title }}</span>
+                                <!-- Collapsible toggle button (simple example) -->
+                                {# TODO: add button icon change on collapse/expand, make button header-wide#}
+                                <button class="notes-directory-content__btn notes-directory-content__btn--collapse"
+                                        onclick="toggleCollapse(this)">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="notes-directory-content__icon"
+                                         height="24px" width="24px" viewBox="0 -960 960 960">
+                                        <path d="m357-384 123-123 123 123 57-56-180-180-180 180 57 56ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <ul class="notes-directory-content__file-list">
+                                {% for note in notes %}
+                                    <li class="notes-directory-content__file-item">
+                                        {{ note.title }}
+                                    </li>
+                                {% empty %}
+                                    <li class="notes-directory-content__file-item">No notes in this directory</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden form for create/rename/delete directory -->
+    <form id="directory_form" method="POST" style="display:none;">
+        {% csrf_token %}
+        <input type="hidden" name="action" id="action_input">
+        <input type="hidden" name="directory_id" id="directory_id_input">
+        <input type="hidden" name="directory_title" id="directory_title_input"> <!-- for create -->
+        <input type="hidden" name="new_title" id="new_title_input">       <!-- for rename -->
+    </form>
+
+    <script>
+        // CREATE directory (prompt)
+        function createDirectoryPrompt() {
+            const name = prompt("Enter new directory name:");
+            if (name && name.trim() !== "") {
+                document.getElementById("action_input").value = "create";
+                document.getElementById("directory_title_input").value = name.trim();
+                document.getElementById("directory_form").submit();
+            }
+        }
+
+        // DELETE directory (confirm)
+        function deleteDirectoryConfirm(dirId, dirName) {
+            if (confirm(`Delete directory: "${dirName}"? This cannot be undone!`)) {
+                document.getElementById("action_input").value = "delete";
+                document.getElementById("directory_id_input").value = dirId;
+                document.getElementById("directory_form").submit();
+            }
+        }
+
+        // RENAME directory (prompt)
+        function renameDirectoryPrompt(dirId, oldName) {
+            const newName = prompt("Rename directory:", oldName);
+            if (newName && newName.trim() !== "" && newName.trim() !== oldName) {
+                document.getElementById("action_input").value = "rename";
+                document.getElementById("directory_id_input").value = dirId;
+                document.getElementById("new_title_input").value = newName.trim();
+                document.getElementById("directory_form").submit();
+            }
+        }
+
+        // Toggle collapse/expand directory's notes
+        function toggleCollapse(button) {
+            const parentDiv = button.closest('.notes-directory-content__directory');
+            if (!parentDiv) return;
+            const fileList = parentDiv.querySelector('.notes-directory-content__file-list');
+            if (fileList.style.display === 'none') {
+                fileList.style.display = '';
+            } else {
+                fileList.style.display = 'none';
+            }
+        }
+    </script>
+{% endblock layout %}
