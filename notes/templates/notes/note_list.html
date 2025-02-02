@@ -1,0 +1,69 @@
+{% extends "base_layout.html" %}
+{% load static %}
+
+
+{% block layout %}
+
+    <div class="notes-layout">
+        <!-- LEFT SIDEBAR -->
+        <div class="notes-sidebar">
+            <div class="sidebar-sticky-wrapper">
+                <!-- Button to create a new note -->
+                <div class="sidebar-button-wrapper">
+                    <button href="{% url 'notes:note_create' %}" class="button sidebar-button">Add New
+                        Note
+                    </button>
+                </div>
+                <!-- Directory selection label -->
+                <div class="sidebar-top-label">
+                    <p>Choose directory:</p>
+                </div>
+                <!-- Dropdown for directories (mimicking your snippet's classes) -->
+                <div class="dropdown" style="margin: 0rem calc(1rem + 2px) 0.3rem;">
+                    <select class="dropdown-input" onchange="location.href='?directory='+this.value">
+                        <option value="">-- All Directories --</option>
+                        {% for d in directory_list %}
+                            <option value="{{ d.id }}"
+                                    {% if d.id|stringformat:"s" == selected_directory %}selected{% endif %}>
+                                {{ d.title }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- NOTES LIST -->
+            <div class="note-titles-list">
+                {% for note in notes %}
+                    <!-- You can highlight "selected" if you want, but typically you'd do that in note_detail.html -->
+                    <div class="note-titles-list__item">
+                        <div class="note-titles-list__select-button">
+                            <a href="{{ note.get_absolute_url }}" class="note-titles-list__text">
+                                {{ note.title|truncatechars:30 }}
+                            </a>
+                        </div>
+                        <div class="note-titles-list__button-area">
+                            <!-- Example icon-button (placeholder) -->
+                            <button class="icon-button">
+                                <svg class="icon-button__icon" height="18px" width="18px"
+                                     viewBox="0 -960 960 960">
+                                    <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p style="margin: 1rem;">No notes found.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- RIGHT AREA: if no note is selected, just show a placeholder -->
+        <div class="notes-display">
+            <div class="notes-display__no-content">
+                <h3>Select a note to see details.</h3>
+            </div>
+        </div>
+
+    </div>
+{% endblock layout %}

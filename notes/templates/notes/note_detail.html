@@ -1,0 +1,46 @@
+<!-- templates/notes/note_detail.html -->
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+  {{ note.title }}
+{% endblock title %}
+
+{% block content %}
+<div class="main-container-wrapper">
+  <!-- Minimal "navbar" on the left -->
+  <aside class="main-navbar">
+    <div class="main-navbar__icon-wrapper">
+      <a href="{% url 'notes:note_list' %}">
+        <svg class="main-navbar__icon" height="24px" width="24px" viewBox="0 -960 960 960">
+          <path d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h240l80 80h320q33 0 56.5 23.5T880-640v400q0 33-23.5 56.5T800-160H160Zm0-80h640v-400H447l-80-80H160v480Zm0 0v-480 480Z"/>
+        </svg>
+      </a>
+    </div>
+  </aside>
+
+  <div class="notes-layout">
+    <!-- If you want the same directory/notes sidebar, you can replicate.
+         For brevity, we’ll just keep it empty. -->
+    <div class="notes-sidebar">
+      <div class="sidebar-sticky-wrapper">
+        <div class="sidebar-top-label">
+          <p>{{ note.directory }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT SIDE: show the note content -->
+    <div class="notes-display">
+      <div class="notes-display__header">
+        <h3>{{ note.title }}</h3>
+      </div>
+      <div class="notes-display__content">
+        <div style="padding:1rem;">
+          {{ note.content|linebreaks }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}
