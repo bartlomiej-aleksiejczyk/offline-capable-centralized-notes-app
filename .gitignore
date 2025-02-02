@@ -148,6 +148,7 @@ Thumbs.db
 
 # Database files specific to django
 *.sqlite3
+*.sqlite
 
 # Huey files
 huey.db
