@@ -23,7 +23,13 @@ def note_list(request):
                 note = get_object_or_404(Note, pk=note_id)
                 note.title = new_title
                 note.save()
-
+        elif action == 'delete_note':
+            note_id = request.POST.get('note_id')
+            if note_id:
+                note = get_object_or_404(Note, pk=note_id)
+                note.delete()
+            return redirect('notes:note_list')
+        
     # Handle the GET case: show directories + notes
     directory_id = request.GET.get('directory')
     directories = Directory.objects.all().order_by('index', 'title')
