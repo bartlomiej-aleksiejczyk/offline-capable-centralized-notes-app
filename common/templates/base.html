@@ -49,7 +49,17 @@
 {% endblock footer %}
 <!-- Scripts -->
 {% block scripts %}
-    <!-- Default JavaScript files -->
+    <script>
+        let isMobile = checkIsMobile();
+
+        function checkIsMobile() {
+            return window.innerWidth < 800;
+        }
+
+        window.addEventListener('resize', () => {
+            isMobile = checkIsMobile();
+        });
+    </script>
 {% endblock scripts %}
 {% block extrajs %}
     <!-- Extra JavaScript specific to a page can be added here -->
