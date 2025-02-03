@@ -8,16 +8,16 @@ def note_list(request):
     """
     Display a list of notes, optionally filtered by ?directory=<id>.
     Also handle creation of new directories via POST.
+    If a note is specified via ?note=<id>, store that note id in the session.
     """
     if request.method == 'POST':
-        # We only expect 'create_directory' action from the JS prompt
+        # We only expect 'create_note', 'rename_note', and 'delete_note' actions from the JS prompt.
         action = request.POST.get('action')
         if action == 'create_note':
             note_title = request.POST.get('note_title', '').strip()
             if note_title:
-                # Create the new Directory
                 Note.objects.create(title=note_title)
-            # After creating directory (or if empty), redirect to GET
+            # After creating note (or if empty), redirect to GET.
             return redirect('notes:note_list')
         if action == 'rename_note':
             note_id = request.POST.get('note_id')
@@ -33,19 +33,27 @@ def note_list(request):
                 note.delete()
             return redirect('notes:note_list')
 
-    # Handle the GET case: show directories + notes
+    # Handle the GET case: show directories + notes.
     directory_id = request.GET.get('directory')
     directories = Directory.objects.all().order_by('index', 'title')
-    selected_note_id = request.GET.get('note')
 
+    # Look for a note parameter in the query string.
+    selected_note_id = request.GET.get('note')
+    if selected_note_id:
+        # Save the selected note id in the session.
+        request.session['selected_note_id'] = selected_note_id
+    else:
+        # Otherwise, if there's a note id stored in session, use that.
+        selected_note_id = request.session.get('selected_note_id')
+
+    # Filter notes based on directory if provided.
     if directory_id:
         notes = Note.objects.filter(directory_id=directory_id).order_by('index', 'title')
     else:
         notes = Note.objects.all().order_by('directory', 'index', 'title')
-    selected_note = None
 
+    selected_note = None
     if selected_note_id:
-        # If we store note ID in ?note=123
         selected_note = get_object_or_404(Note, pk=selected_note_id)
 
     context = {
@@ -118,13 +126,12 @@ def ajax_update_note_order(request):
     return JsonResponse({'status': 'ok', 'note_id': note_id})
 
 
-def note_detail(request, slug):
+def note_detail(request, id):
     """
     Display a single note detail.
     """
-    note = get_object_or_404(Note, slug=slug)
-    return render(request, 'notes/note_detail.html', {'note': note, 'selected_note': note,
-                                                      })
+    note = get_object_or_404(Note, id=id)
+    return render(request, 'notes/note_detail.html', {'note': note, 'selected_note': note, })
 
 
 from django.http import HttpResponseBadRequest, JsonResponse

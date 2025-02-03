@@ -66,7 +66,7 @@
         </div>
 
         <!-- RIGHT AREA: if no note is selected, just show a placeholder -->
-        <div class="notes-display">
+        <div class="notes-display" id="notes-display-desktop">
             {% if selected_note %}
                 <div class="notes-display__header">
                     <h3>{{ selected_note.title }}</h3>
