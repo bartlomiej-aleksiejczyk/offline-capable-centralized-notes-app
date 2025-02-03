@@ -80,7 +80,7 @@
                                         {{ note.title }}
                                     </li>
                                 {% empty %}
-                                    <li class="notes-directory-content__file-item">No notes in this directory</li>
+                                    {#                                    <li class="notes-directory-content__file-item">No notes in this directory</li>#}
                                 {% endfor %}
                             </ul>
                         </div>
@@ -99,23 +99,29 @@
         <input type="hidden" name="new_title" id="new_title_input">            <!-- for rename -->
     </form>
 
-    <!-- Basic styles for drag & drop feedback -->
+    <!-- Styles including transitions for a little animation -->
     <style>
-        /* Style for the placeholder inserted during dragging */
+        /* The placeholder shows a dashed outline and fades background color */
         .drag-placeholder {
             border: 2px dashed #ccc;
             background: #f8f8f8;
             margin: 4px 0;
+            transition: background-color 0.3s ease;
         }
 
-        /* Optional: reduce opacity for the element being dragged */
+        /* Add a transition for transform changes (used by the FLIP animation) */
+        .notes-directory-content__file-item {
+            transition: transform 0.3s ease;
+        }
+
+        /* Slightly fade the dragged element */
         .notes-directory-content__file-item.dragging {
             opacity: 0.5;
             pointer-events: none;
         }
     </style>
 
-    <!-- Vanilla JS for drag & drop with mobile (using pointer events) -->
+    <!-- Vanilla JS for drag & drop with mobile (using pointer events) plus animations -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             let draggingEl = null;
@@ -133,29 +139,25 @@
             });
 
             function pointerDownHandler(e) {
-                // Only start drag on left button (or touch)
-                if (e.button !== 0) return;
+                if (e.button !== 0) return; // Only handle primary pointer button
                 draggingEl = this;
                 draggingEl.classList.add('dragging');
                 originalContainer = draggingEl.parentElement;
-
-                // Set placeholder height equal to dragged element
+                // Set placeholder height to match the dragged element
                 placeholder.style.height = draggingEl.offsetHeight + 'px';
-                // Insert placeholder right after the dragged element in its container
                 originalContainer.insertBefore(placeholder, draggingEl.nextSibling);
 
-                // Calculate pointer offset inside the element
+                // Calculate the pointer's offset inside the element
                 const rect = draggingEl.getBoundingClientRect();
                 offsetX = e.clientX - rect.left;
                 offsetY = e.clientY - rect.top;
 
-                // Set up the dragged element to follow the pointer
+                // Prepare the element for dragging by making it absolute
                 draggingEl.style.position = 'absolute';
                 draggingEl.style.zIndex = 1000;
                 draggingEl.style.width = rect.width + 'px';
                 moveAt(e.pageX, e.pageY);
 
-                // Add move and up event listeners to the document
                 document.addEventListener('pointermove', pointerMoveHandler);
                 document.addEventListener('pointerup', pointerUpHandler);
                 e.preventDefault();
@@ -169,19 +171,18 @@
             function pointerMoveHandler(e) {
                 moveAt(e.pageX, e.pageY);
 
-                // Hide the dragged element momentarily to get the element underneath
+                // Hide the dragged element momentarily to detect underlying elements
                 draggingEl.hidden = true;
                 let elemBelow = document.elementFromPoint(e.clientX, e.clientY);
                 draggingEl.hidden = false;
                 if (!elemBelow) return;
 
-                // Check if we are over a note list container
+                // Find the note list container we're hovering over
                 let droppableContainer = elemBelow.closest('.notes-directory-content__file-list');
                 if (droppableContainer) {
-                    // Get the note items (excluding the one being dragged)
                     let items = Array.from(droppableContainer.querySelectorAll('.notes-directory-content__file-item:not(.dragging)'));
                     let inserted = false;
-                    // Insert the placeholder before the first item the pointer is above
+                    // Insert the placeholder before the first item that the pointer is above
                     for (let item of items) {
                         const rect = item.getBoundingClientRect();
                         if (e.clientY < rect.top + rect.height / 2) {
@@ -190,7 +191,7 @@
                             break;
                         }
                     }
-                    // If not inserted above any item, append at the end
+                    // If no suitable item is found, append to the end
                     if (!inserted) {
                         droppableContainer.appendChild(placeholder);
                     }
@@ -198,31 +199,56 @@
             }
 
             function pointerUpHandler(e) {
-                // Remove pointer move and up listeners
                 document.removeEventListener('pointermove', pointerMoveHandler);
                 document.removeEventListener('pointerup', pointerUpHandler);
 
-                // Place the dragged element into the drop position
+                // Insert the dragged element at the placeholder's position
                 placeholder.parentElement.insertBefore(draggingEl, placeholder);
-                // Clean up the dragged element’s styles
+
+                // --- FLIP Animation ---
+                // Record the "first" position (current absolute position)
+                const firstRect = draggingEl.getBoundingClientRect();
+
+                // Remove absolute positioning so the element takes its natural place
                 draggingEl.style.position = '';
                 draggingEl.style.zIndex = '';
                 draggingEl.style.left = '';
                 draggingEl.style.top = '';
                 draggingEl.style.width = '';
+
+                // Record the "last" position after reflow
+                const lastRect = draggingEl.getBoundingClientRect();
+                // Calculate the delta between the first and last positions
+                const deltaX = firstRect.left - lastRect.left;
+                const deltaY = firstRect.top - lastRect.top;
+                // Apply the inverse transform so the element appears in its original location
+                draggingEl.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+
+                // Force reflow to ensure the transform is applied
+                draggingEl.offsetWidth; // read property to trigger reflow
+
+                // Animate the transform back to zero so it slides into place
+                draggingEl.style.transition = 'transform 0.3s ease';
+                draggingEl.style.transform = '';
+                draggingEl.addEventListener('transitionend', function te() {
+                    if (draggingEl) {
+                        draggingEl.style.transition = '';
+                        draggingEl.removeEventListener('transitionend', te);
+                    }
+                });
+                // --- End FLIP Animation ---
+
                 draggingEl.classList.remove('dragging');
 
                 // Determine new container and new index for the dragged note
                 const newContainer = draggingEl.parentElement;
                 const noteItemsInContainer = Array.from(newContainer.querySelectorAll('.notes-directory-content__file-item'));
                 const newIndex = noteItemsInContainer.indexOf(draggingEl);
-                // The directory container is the parent with data-directory-id
                 const directoryContainer = newContainer.closest('.notes-directory-content__directory');
                 const newDirectoryId = directoryContainer ? directoryContainer.getAttribute('data-directory-id') : null;
-
-                // Optimistically update the UI (the DOM is already updated)
-                // Now, send an AJAX request to update the note’s order and directory on the server.
                 const noteId = draggingEl.getAttribute('data-note-id');
+
+                // Optimistically update the UI (the element is already in its new position)
                 updateNoteOrder(noteId, newIndex, newDirectoryId);
 
                 // Remove the placeholder
@@ -251,16 +277,16 @@
                     .then(data => {
                         if (data.status !== 'ok') {
                             alert('Error updating note order: ' + (data.message || 'Unknown error'));
-                            // Optionally, revert the UI changes if the update fails.
+                            // Optionally revert UI changes if needed.
                         }
                     })
                     .catch(error => {
                         console.error('Error updating note order:', error);
-                        // Optionally, revert the UI changes if the update fails.
+                        // Optionally revert UI changes if needed.
                     });
             }
 
-            // Helper function to get CSRF token from cookies.
+            // Helper to get the CSRF token from cookies
             function getCookie(name) {
                 let cookieValue = null;
                 if (document.cookie && document.cookie !== '') {
