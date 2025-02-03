@@ -3,9 +3,7 @@ FIRST_STAGE
 ===
 # TODO: Add responsiveness for: main navbar, note page, directory page, split note page on 2 when mobile add an icon
 # TODO: add style and search to the choose directory box
-# TODO: Add drag and drop note/directory sorting
 # TODO: Add default note feature
-# TODO: remove redundant views/ templates
 ===
 SECOND_STAGE
 ===
@@ -19,3 +17,7 @@ NON_IMPORTANT
 # TODO: Add animations to actions like collapse remove add
 # TODO: Add loading spinner to all actions
 # TODO: use htmx/jquery/own solution for better user interactivity, remove full page reload
+# TODO: fix note ordering problem in directory view
+# TODO: Add drag and drop note list sorting
+# TODO: fix slug/id split
+

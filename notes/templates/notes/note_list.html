@@ -34,9 +34,10 @@
             <!-- NOTES LIST -->
             <div class="note-titles-list">
                 {% for note in notes %}
-                    <div class="note-titles-list__item">
+                    <div class="note-titles-list__item  {% if note == selected_note %} note-titles-list__item--selected {% endif %}">
                         <div class="note-titles-list__select-button">
-                            <a href="?{% if selected_directory %}directory={{ selected_directory }}&{% endif %}note={{ note.id }}"
+                            <a onclick="setLocalSelectedNote({{ note.id }})"
+                               href="?{% if selected_directory %}directory={{ selected_directory }}&{% endif %}note={{ note.id }}"
                                class="note-titles-list__text">
                                 {{ note.title|truncatechars:30 }}
                             </a>
@@ -107,6 +108,11 @@
     </form>
 
     <script>
+
+        function setLocalSelectedNote(noteId) {
+            localStorage.setItem('selectedNoteId', noteId);
+        }
+
         function promptNewNote() {
             const noteTitle = prompt("Enter a name for the new Note:");
             if (noteTitle && noteTitle.trim().length > 0) {
