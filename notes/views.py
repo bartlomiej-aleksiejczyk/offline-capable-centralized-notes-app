@@ -1,4 +1,7 @@
 # notes/views.py
+import json
+
+from django.views.decorators.http import require_POST
 
 
 def note_list(request):
@@ -67,6 +70,52 @@ def ajax_update_note(request, note_id):
         note.save()
         return JsonResponse({'status': 'ok', 'note_id': note_id})
     return JsonResponse({'status': 'error', 'message': 'Only POST allowed'}, status=400)
+
+
+@require_POST
+def ajax_update_note_order(request):
+    """
+    AJAX view to update a note's order (index) and directory assignment.
+    Expects a JSON payload with:
+        - note_id: the primary key of the note,
+        - new_index: the new index (position) as an integer,
+        - new_directory: the new directory id (or "0" for no directory).
+    Returns a JSON response indicating success or error.
+    """
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON payload.'}, status=400)
+
+    note_id = data.get('note_id')
+    new_index = data.get('new_index')
+    new_directory = data.get('new_directory')
+
+    if note_id is None or new_index is None:
+        return JsonResponse({'status': 'error', 'message': 'Missing note_id or new_index.'}, status=400)
+
+    # Ensure new_index is an integer
+    try:
+        new_index = int(new_index)
+    except (ValueError, TypeError):
+        return JsonResponse({'status': 'error', 'message': 'Invalid new_index value.'}, status=400)
+
+    # Retrieve the note object
+    note = get_object_or_404(Note, pk=note_id)
+
+    # Update the note's directory assignment:
+    # If new_directory is "0", 0, or None, set directory to None.
+    if new_directory in [None, "0", 0]:
+        note.directory = None
+    else:
+        directory = get_object_or_404(Directory, pk=new_directory)
+        note.directory = directory
+
+    # Update the note's index
+    note.index = new_index
+    note.save()
+
+    return JsonResponse({'status': 'ok', 'note_id': note_id})
 
 
 def note_detail(request, slug):
