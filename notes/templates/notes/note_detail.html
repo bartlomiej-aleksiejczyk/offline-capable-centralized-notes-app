@@ -1,46 +1,75 @@
-<!-- templates/notes/note_detail.html -->
-{% extends "base.html" %}
+{% extends "base_layout.html" %}
 {% load static %}
 
 {% block title %}
-  {{ note.title }}
+    View Directories
 {% endblock title %}
-
-{% block content %}
-<div class="main-container-wrapper">
-  <!-- Minimal "navbar" on the left -->
-  <aside class="main-navbar">
-    <div class="main-navbar__icon-wrapper">
-      <a href="{% url 'notes:note_list' %}">
-        <svg class="main-navbar__icon" height="24px" width="24px" viewBox="0 -960 960 960">
-          <path d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h240l80 80h320q33 0 56.5 23.5T880-640v400q0 33-23.5 56.5T800-160H160Zm0-80h640v-400H447l-80-80H160v480Zm0 0v-480 480Z"/>
-        </svg>
-      </a>
-    </div>
-  </aside>
-
-  <div class="notes-layout">
-    <!-- If you want the same directory/notes sidebar, you can replicate.
-         For brevity, we’ll just keep it empty. -->
-    <div class="notes-sidebar">
-      <div class="sidebar-sticky-wrapper">
-        <div class="sidebar-top-label">
-          <p>{{ note.directory }}</p>
+{% block layout %}
+    <!-- Main Directory Container -->
+    <div class="notes-directory">
+        <div class="notes-display">
+            {% if selected_note %}
+                <div class="notes-display__header">
+                    <h3>{{ selected_note.title }}</h3>
+                </div>
+                <div class="notes-display__content" style="display: flex; flex-direction: column;">
+                <textarea id="noteContent"
+                          class="notes-display__textarea"
+                          style="flex:1; resize: none;"
+                          oninput="debounceSave()">
+                    {{ selected_note.content }}
+                </textarea>
+                </div>
+            {% else %}
+                <div class="notes-display__no-content">
+                    <h3>Select a note to see details.</h3>
+                </div>
+            {% endif %}
         </div>
-      </div>
     </div>
 
-    <!-- RIGHT SIDE: show the note content -->
-    <div class="notes-display">
-      <div class="notes-display__header">
-        <h3>{{ note.title }}</h3>
-      </div>
-      <div class="notes-display__content">
-        <div style="padding:1rem;">
-          {{ note.content|linebreaks }}
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-{% endblock content %}
+    <!-- Hidden form for create/rename/delete directory -->
+    <form id="directory_form" method="POST" style="display:none;">
+        {% csrf_token %}
+        <input type="hidden" name="action" id="action_input">
+        <input type="hidden" name="directory_id" id="directory_id_input">
+        <input type="hidden" name="directory_title" id="directory_title_input"> <!-- for create -->
+        <input type="hidden" name="new_title" id="new_title_input">            <!-- for rename -->
+    </form>
+
+    <script>
+        let debounceTimer = null;
+
+        function debounceSave() {
+            if (debounceTimer) clearTimeout(debounceTimer);
+            // 1 second delay after user stops typing
+            debounceTimer = setTimeout(saveNoteContent, 1000);
+        }
+
+        function saveNoteContent() {
+            const content = document.getElementById('noteContent').value;
+            const noteId = '{% if selected_note %}{{ selected_note.id }}{% endif %}'
+            if (!noteId) return;
+
+            const url = "{% url 'notes:ajax_update_note' 0 %}".replace('/0/', '/' + noteId + '/');
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({content: content})
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'ok') {
+                        console.log("Note updated successfully");
+                    } else {
+                        console.error("Error updating note:", data);
+                    }
+                })
+                .catch(err => console.error("Ajax error:", err));
+        }
+    </script>
+{% endblock layout %}

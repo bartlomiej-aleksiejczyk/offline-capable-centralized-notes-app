@@ -74,7 +74,8 @@ def note_detail(request, slug):
     Display a single note detail.
     """
     note = get_object_or_404(Note, slug=slug)
-    return render(request, 'notes/note_detail.html', {'note': note})
+    return render(request, 'notes/note_detail.html', {'note': note, 'selected_note': note,
+                                                      })
 
 
 def note_create(request):
