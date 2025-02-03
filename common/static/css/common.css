@@ -418,3 +418,24 @@
         border-color: var(--color-primary-lighter);
     }
 }
+
+.dropdown {
+    display: flex;
+}
+
+.dropdown-input {
+    flex-grow: 1;
+
+    &:focus {
+        outline: 1px dashed var(--color-primary-lighter);
+    }
+
+    font-family: inherit;
+    padding: 0.5rem;
+    border: 2px solid var(--color-secondary-darker);
+    border-radius: var(--border-radius-medium);
+    margin: 0.25rem auto 0.5rem;
+    justify-content: center;
+    background-color: var(--color-text-on-primary);
+    color: var(--color-text-primary);
+}
