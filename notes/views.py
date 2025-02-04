@@ -3,6 +3,8 @@ import json
 
 from django.views.decorators.http import require_POST
 
+LOCAL_NOTE_NAME = "local~note"
+
 
 def note_list(request):
     """
@@ -53,8 +55,10 @@ def note_list(request):
         notes = Note.objects.all().order_by('directory', 'index', 'title')
 
     selected_note = None
-    if selected_note_id:
+    if selected_note_id and (selected_note_id != LOCAL_NOTE_NAME):
         selected_note = get_object_or_404(Note, pk=selected_note_id)
+    elif selected_note_id == LOCAL_NOTE_NAME:
+        selected_note = {'title': LOCAL_NOTE_NAME, 'content': ''}
 
     context = {
         'directory_list': directories,
@@ -130,7 +134,10 @@ def note_detail(request, id):
     """
     Display a single note detail.
     """
-    note = get_object_or_404(Note, id=id)
+    if id == LOCAL_NOTE_NAME:
+        note = {'title': LOCAL_NOTE_NAME, 'content': ''}
+    else:
+        note = get_object_or_404(Note, id=id)
     return render(request, 'notes/note_detail.html', {'note': note, 'selected_note': note, })
 
 
