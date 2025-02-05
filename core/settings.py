@@ -120,3 +120,4 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = "customizedusers.CustomizedUser"
+LOGIN_REDIRECT_URL = 'notes:note_list'

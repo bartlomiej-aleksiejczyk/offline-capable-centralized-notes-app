@@ -75,36 +75,5 @@
 {% endblock content %}
 {% block scripts %}
 
-    <script>
-        jQuery(document).ready(function () {
-            function updateMobileLayout() {
-                const winWidth = jQuery(window).width();
-                if (winWidth < 768) {
-                    jQuery('.notes-sidebar').addClass('notes-sidebar--mobile');
-                    jQuery('.main-container-wrapper').addClass('main-container-wrapper--mobile');
-                    jQuery('.main-navbar').addClass('main-navbar--mobile');
-                    jQuery('.notes-directory').addClass('notes-directory--mobile');
-                    jQuery('.notes-layout').addClass('notes-layout--mobile');
-                    jQuery('#notes-display-desktop').hide();
-                    jQuery('#notes-display-mobile-icon').show();
-                } else {
-                    jQuery('.notes-sidebar').removeClass('notes-sidebar--mobile');
-                    jQuery('.main-container-wrapper').removeClass('main-container-wrapper--mobile')
-                    jQuery('.main-navbar').removeClass('main-navbar--mobile');
-                    jQuery('.notes-directory').removeClass('notes-directory--mobile');
-                    jQuery('.notes-layout').removeClass('notes-layout--mobile');
-                    jQuery('#notes-display-desktop').show();
-                    jQuery('#notes-display-mobile-icon').hide();
-
-                }
-            }
-
-            updateMobileLayout();
-
-            jQuery(window).on('resize orientationchange', function () {
-                updateMobileLayout();
-            });
-
-        });
-    </script>
+    
 {% endblock scripts %}
