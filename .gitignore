@@ -154,3 +154,6 @@ Thumbs.db
 huey.db
 huey.db-shm
 huey.db-wal
+
+# Static files
+staticfiles/*

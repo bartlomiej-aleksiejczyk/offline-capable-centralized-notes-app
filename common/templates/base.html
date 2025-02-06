@@ -11,8 +11,7 @@
     {% endblock meta %}
     <title>
         {% block title %}
-            <!-- Page Title -->
-            Copier App Template
+            Offline capable notes
         {% endblock title %}
     </title>
     <!-- Stylesheets -->
@@ -53,6 +52,7 @@
         jQuery(document).ready(function () {
             function updateMobileLayout() {
                 const winWidth = jQuery(window).width();
+                console.log("dfsdsfdf");
                 if (winWidth < 768) {
                     jQuery(".notes-sidebar").addClass("notes-sidebar--mobile");
                     jQuery(".main-container-wrapper").addClass("main-container-wrapper--mobile");

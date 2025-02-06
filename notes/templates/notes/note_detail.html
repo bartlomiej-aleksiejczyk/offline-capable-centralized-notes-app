@@ -46,14 +46,13 @@
                     loadDefaultNote();
                 }
             }
-        )
+        );
 
         function loadDefaultNote() {
-            document.getElementById('noteContent').value = localStorage.getItem("localNote");
+            document.getElementById("noteContent").value = localStorage.getItem("localNote");
         }
 
         document.addEventListener("visibilitychange", function () {
-            console.log("visibilitychange");
             if (!document.hidden) {
                 location.reload();
             }
@@ -65,9 +64,9 @@
         }
 
         function saveNoteContent() {
-            const content = document.getElementById('noteContent').value;
-            const noteId = '{% if selected_note %}{{ selected_note.id }}{% endif %}'
-            const noteTitle = '{% if selected_note %}{{ selected_note.title }}{% endif %}'
+            const content = document.getElementById("noteContent").value;
+            const noteId = '{% if selected_note %}{{ selected_note.id }}{% endif %}';
+            const noteTitle = '{% if selected_note %}{{ selected_note.title }}{% endif %}';
 
             if (noteTitle === "local~note") {
                 localStorage.setItem("localNote", content);
@@ -75,19 +74,19 @@
 
             if (!noteId) return;
 
-            const url = "{% url 'notes:ajax_update_note' 0 %}".replace('/0/', '/' + noteId + '/');
+            const url = "{% url 'notes:ajax_update_note' 0 %}".replace("/0/", "/" + noteId + "/");
 
             fetch(url, {
-                method: 'POST',
+                method: "POST",
                 headers: {
-                    'X-CSRFToken': '{{ csrf_token }}',
-                    'Content-Type': 'application/x-www-form-urlencoded',
+                    "X-CSRFToken": '{{ csrf_token }}',
+                    "Content-Type": "application/x-www-form-urlencoded",
                 },
                 body: new URLSearchParams({content: content})
             })
                 .then(response => response.json())
                 .then(data => {
-                    if (data.status === 'ok') {
+                    if (data.status === "ok") {
                         console.log("Note updated successfully");
                     } else {
                         console.error("Error updating note:", data);

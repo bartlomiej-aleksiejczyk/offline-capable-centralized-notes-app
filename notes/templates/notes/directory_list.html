@@ -78,8 +78,6 @@
                                 <li class="notes-directory-content__file-item" data-note-id="{{ note.id }}">
                                     {{ note.title }}
                                 </li>
-                            {% empty %}
-                                <li class="notes-directory-content__file-item">No notes in this directory</li>
                             {% endfor %}
                         </ul>
                     </div>
@@ -125,7 +123,6 @@
             // Attach pointer event listeners on all note items
             const noteItems = document.querySelectorAll(".notes-directory-content__file-item");
             noteItems.forEach(item => {
-                Z;
                 // Disable default touch actions to allow custom drag
                 item.style.touchAction = "none";
                 item.addEventListener("pointerdown", pointerDownHandler);

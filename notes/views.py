@@ -42,7 +42,7 @@ def note_list(request):
         request.session['selected_note_id'] = selected_note_id
     else:
         selected_note_id = request.session.get('selected_note_id')
-        if selected_note_id:  # Ensure it's not None
+        if selected_note_id and selected_note_id != LOCAL_NOTE_NAME:  # Ensure it's not None
             if not Note.objects.filter(pk=selected_note_id).exists():  # Check if the note exists safely
                 request.session.pop('selected_note_id', None)
 
@@ -56,7 +56,7 @@ def note_list(request):
         selected_note = get_object_or_404(Note, pk=selected_note_id, user=user)
     elif selected_note_id == LOCAL_NOTE_NAME:
         selected_note = {'title': LOCAL_NOTE_NAME, 'content': ''}
-        
+
     context = {
         'directory_list': directories,
         'selected_directory': directory_id,

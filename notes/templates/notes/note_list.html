@@ -126,28 +126,27 @@
                     loadDefaultNote();
                 }
             }
-        )
+        );
 
         document.addEventListener("visibilitychange", function () {
-            console.log("visibilitychange");
             if (!document.hidden) {
                 location.reload();
             }
         });
 
         function loadDefaultNote() {
-            document.getElementById('noteContent').value = localStorage.getItem("localNote");
+            document.getElementById("noteContent").value = localStorage.getItem("localNote");
         }
 
         function setLocalSelectedNote(noteId) {
-            localStorage.setItem('selectedNoteId', noteId);
+            localStorage.setItem("selectedNoteId", noteId);
         }
 
         function promptNewNote() {
             const noteTitle = prompt("Enter a name for the new Note:");
             if (noteTitle && noteTitle.trim().length > 0) {
-                document.getElementById('note_title_input').value = noteTitle.trim();
-                document.getElementById('create_note_form').submit();
+                document.getElementById("note_title_input").value = noteTitle.trim();
+                document.getElementById("create_note_form").submit();
             }
         }
 
@@ -159,9 +158,9 @@
         }
 
         function saveNoteContent() {
-            const content = document.getElementById('noteContent').value;
-            const noteId = '{% if selected_note %}{{ selected_note.id }}{% endif %}'
-            const noteTitle = '{% if selected_note %}{{ selected_note.title }}{% endif %}'
+            const content = document.getElementById("noteContent").value;
+            const noteId = '{% if selected_note %}{{ selected_note.id }}{% endif %}';
+            const noteTitle = '{% if selected_note %}{{ selected_note.title }}{% endif %}';
 
             if (noteTitle === "local~note") {
                 localStorage.setItem("localNote", content);
@@ -169,19 +168,19 @@
 
             if (!noteId) return;
 
-            const url = "{% url 'notes:ajax_update_note' 0 %}".replace('/0/', '/' + noteId + '/');
+            const url = "{% url 'notes:ajax_update_note' 0 %}".replace("/0/", "/" + noteId + "/");
 
             fetch(url, {
-                method: 'POST',
+                method: "POST",
                 headers: {
-                    'X-CSRFToken': '{{ csrf_token }}',
-                    'Content-Type': 'application/x-www-form-urlencoded',
+                    "X-CSRFToken": '{{ csrf_token }}',
+                    "Content-Type": "application/x-www-form-urlencoded",
                 },
                 body: new URLSearchParams({content: content})
             })
                 .then(response => response.json())
                 .then(data => {
-                    if (data.status === 'ok') {
+                    if (data.status === "ok") {
                         console.log("Note updated successfully");
                     } else {
                         console.error("Error updating note:", data);
@@ -193,16 +192,16 @@
         function renameNotePrompt(noteId, oldName) {
             const newName = prompt("Rename Note:", oldName);
             if (newName && newName.trim() !== "" && newName.trim() !== oldName) {
-                document.getElementById('note_id_input').value = noteId;
-                document.getElementById('new_note_title_input').value = newName.trim();
-                document.getElementById('rename_note_form').submit();
+                document.getElementById("note_id_input").value = noteId;
+                document.getElementById("new_note_title_input").value = newName.trim();
+                document.getElementById("rename_note_form").submit();
             }
         }
 
         function deleteNoteConfirm(noteId, noteTitle) {
             if (confirm(`Are you sure you want to delete note "${noteTitle}"?\nThis cannot be undone.`)) {
-                document.getElementById('delete_note_id_input').value = noteId;
-                document.getElementById('delete_note_form').submit();
+                document.getElementById("delete_note_id_input").value = noteId;
+                document.getElementById("delete_note_form").submit();
             }
         }
 
