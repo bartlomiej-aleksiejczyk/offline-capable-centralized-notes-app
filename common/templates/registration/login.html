@@ -60,7 +60,6 @@
         function resetInactivityTimer() {
             clearTimeout(inactivityTimeout);
             inactivityTimeout = setTimeout(() => {
-                console.log("User inactive for 5 minutes. Refreshing page...");
                 location.reload();
             }, 60000);
         }
