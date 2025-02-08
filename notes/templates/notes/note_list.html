@@ -87,9 +87,7 @@
                 <textarea id="noteContent"
                           class="notes-display__textarea"
                           style="flex:1; resize: none;"
-                          oninput="debounceSave()">
-                    {{ selected_note.content }}
-                </textarea>
+                          oninput="debounceSave()">{{ selected_note.content }}</textarea>
                 </div>
             {% else %}
                 <div class="notes-display__no-content">
@@ -167,6 +165,7 @@
             }
 
             if (!noteId) return;
+            console.log(content);
 
             const url = "{% url 'notes:ajax_update_note' 0 %}".replace("/0/", "/" + noteId + "/");
 

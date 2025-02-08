@@ -16,9 +16,7 @@
                 <textarea id="noteContent"
                           class="notes-display__textarea"
                           style="flex:1; resize: none;"
-                          oninput="debounceSave()">
-                    {{ selected_note.content }}
-                </textarea>
+                          oninput="debounceSave()">{{ selected_note.content }}</textarea>
                 </div>
             {% else %}
                 <div class="notes-display__no-content">

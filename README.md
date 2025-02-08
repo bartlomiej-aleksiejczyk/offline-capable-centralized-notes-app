@@ -15,3 +15,9 @@
 ```bash
   python3 manage.py migrate
 ```
+
+# Collect static
+
+```bash
+python manage.py collectstatic
+```
