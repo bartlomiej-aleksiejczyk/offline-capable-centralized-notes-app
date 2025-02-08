@@ -165,7 +165,6 @@
             }
 
             if (!noteId) return;
-            console.log(content);
 
             const url = "{% url 'notes:ajax_update_note' 0 %}".replace("/0/", "/" + noteId + "/");
 
