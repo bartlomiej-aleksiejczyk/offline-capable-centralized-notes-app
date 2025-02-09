@@ -20,7 +20,7 @@
                 <!-- Dropdown for directories -->
                 <div class="dropdown" style="margin: 0rem calc(1rem + 2px) 0.3rem;">
                     <select class="dropdown-input" onchange="location.href='?directory='+this.value">
-                        <option value="">-- All Directories --</option>
+                        <option value="">-- Not Assigned --</option>
                         {% for d in directory_list %}
                             <option value="{{ d.id }}"
                                     {% if d.id|stringformat:"s" == selected_directory %}selected{% endif %}>

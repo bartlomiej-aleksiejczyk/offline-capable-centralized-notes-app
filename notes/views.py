@@ -47,9 +47,7 @@ def note_list(request):
                 request.session.pop('selected_note_id', None)
 
     # Filter notes by user and directory
-    notes = Note.objects.filter(user=user).order_by('directory', 'index', 'title')
-    if directory_id:
-        notes = notes.filter(directory_id=directory_id)
+    notes = Note.objects.filter(user=user, directory_id=directory_id).order_by('directory', 'index', 'title')
 
     selected_note = None
     if selected_note_id and (selected_note_id != LOCAL_NOTE_NAME):
