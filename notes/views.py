@@ -35,6 +35,8 @@ def note_list(request):
             return redirect('notes:note_list')
 
     directory_id = request.GET.get('directory')
+    directory_id = int(directory_id) if directory_id and directory_id.isdigit() else None
+
     directories = Directory.objects.filter(user=user).order_by('index', 'title')  # Filter by user
 
     selected_note_id = request.GET.get('note')
@@ -57,7 +59,7 @@ def note_list(request):
 
     context = {
         'directory_list': directories,
-        'selected_directory': directory_id,
+        'selected_directory': str(directory_id),
         'notes': notes,
         'selected_note': selected_note,
     }
