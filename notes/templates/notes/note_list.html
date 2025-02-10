@@ -35,25 +35,23 @@
             <!-- NOTES LIST -->
             <div class="note-titles-list">
                 <div class="note-titles-list__item  {% if selected_note.title == 'local~note' %} note-titles-list__item--selected {% endif %}">
-                    <div class="note-titles-list__select-button">
-                        <a onclick="setLocalSelectedNote({{ note.id }})"
+                    <a onclick="setLocalSelectedNote({{ note.id }})"
+                       class="note-titles-list__select-button"
                            href="?{% if selected_directory %}directory={{ selected_directory }}&{% endif %}note=local~note"
-                           class="note-titles-list__text">
-                            local~note
-                        </a>
-                    </div>
+                    >
+                        <span class="note-titles-list__text">local~note</span>
+                    </a>
                     <div class="note-titles-list__button-area">
                     </div>
                 </div>
                 {% for note in notes %}
                     <div class="note-titles-list__item  {% if note == selected_note %} note-titles-list__item--selected {% endif %}">
-                        <div class="note-titles-list__select-button">
-                            <a onclick="setLocalSelectedNote({{ note.id }})"
-                               href="?{% if selected_directory %}directory={{ selected_directory }}&{% endif %}note={{ note.id }}"
-                               class="note-titles-list__text">
-                                {{ note.title|truncatechars:30 }}
-                            </a>
-                        </div>
+                        <a onclick="setLocalSelectedNote({{ note.id }})"
+                           class="note-titles-list__select-button"
+                           href="?{% if selected_directory %}directory={{ selected_directory }}&{% endif %}note={{ note.id }}"
+                        >
+                            <span class="note-titles-list__text">{{ note.title|truncatechars:30 }}</span>
+                        </a>
                         <div class="note-titles-list__button-area">
                             <button class="icon-button" onclick="renameNotePrompt('{{ note.id }}', '{{ note.title }}')">
                                 <svg class="icon-button__icon" height="18px" width="18px" viewBox="0 -960 960 960">

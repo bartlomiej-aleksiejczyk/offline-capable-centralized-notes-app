@@ -240,9 +240,11 @@
     display: flex;
     flex-grow: 1;
     cursor: pointer;
+    text-decoration: none;
 
     &:hover {
         text-decoration: underline;
+        text-decoration-color: var(--color-main-text);
     }
 }
 
@@ -251,9 +253,7 @@
     overflow: hidden;
     white-space: nowrap;
     max-width: 12rem;
-    text-decoration: none;
     color: var(--color-main-text);
-    text-decoration-color: var(--color-main-text);
 
     &:hover {
         text-decoration: underline;
