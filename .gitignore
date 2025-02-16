@@ -170,6 +170,7 @@ lerna-debug.log*
 
 node_modules
 dist
+client_components__dist
 dist-ssr
 *.local
 
