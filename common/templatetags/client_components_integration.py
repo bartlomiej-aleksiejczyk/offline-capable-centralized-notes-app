@@ -9,6 +9,7 @@ register = template.Library()
 CLIENT_COMPONENT_SETTINGS = getattr(settings, "CLIENT_COMPONENT_SETTINGS", {})
 
 
+# todo: add debug mode handling
 @register.simple_tag
 def load_client_components():
     """Load JS & CSS assets dynamically, supporting both Apache and Django static files."""
