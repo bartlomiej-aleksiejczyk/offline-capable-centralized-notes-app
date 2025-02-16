@@ -10,6 +10,7 @@ export default defineConfig({
   plugins: [svelte()],
   build: {
     manifest: true,
+    outDir: resolve(__dirname, "client_components__dist"),
     lib: {
       entry: resolve(__dirname, "client_components/main.js"),
       name: "OfflineNotesClientComponents",
