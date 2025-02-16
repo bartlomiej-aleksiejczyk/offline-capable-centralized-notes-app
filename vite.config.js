@@ -11,9 +11,9 @@ export default defineConfig({
   build: {
     manifest: true,
     lib: {
-      entry: path.resolve(__dirname, "src/main.js"),
-      name: "OfflineNotesClientLibrary",
-      fileName: "offline_notes_client_library",
+      entry: resolve(__dirname, "client_components/main.js"),
+      name: "OfflineNotesClientComponents",
+      fileName: "offline_notes_client_components",
       formats: ["es"],
     },
   },
