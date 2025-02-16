@@ -1,5 +1,6 @@
 import json
 import os
+
 from django import template
 from django.conf import settings
 from django.utils.safestring import mark_safe
@@ -9,50 +10,54 @@ register = template.Library()
 CLIENT_COMPONENT_SETTINGS = getattr(settings, "CLIENT_COMPONENT_SETTINGS", {})
 
 
-# todo: add debug mode handling
 @register.simple_tag
 def load_client_components():
-    """Load JS & CSS assets dynamically, supporting both Apache and Django static files."""
+    """Load JS & CSS assets dynamically, supporting both Vite Dev Mode and production."""
 
-    client_components_static_url = getattr(settings, "STATIC_URL", "static/")
+    # **Vite Dev Mode Settings**
+    is_debug = settings.DEBUG
+
+    # **Production Mode Settings**
+    client_components_static_url = getattr(settings, "STATIC_URL", "/static/")
     manifest_path = CLIENT_COMPONENT_SETTINGS.get(
-        "MANIFEST_FILE_PATH", ".vite/manifest.json"
+        "MANIFEST_FILE_PATH", os.path.join(settings.BASE_DIR, "dist", ".vite", "manifest.json")
     )
-    # TODO: REMOVE THIS DANGEROUS ERROR HANDLING, ADD A PROPER ONE
+    vite_dev_url = CLIENT_COMPONENT_SETTINGS.get("DEV_URL", "http://localhost:5173/")
+    client_components_path = CLIENT_COMPONENT_SETTINGS.get("CLIENT_COMPONENTS_PATH", "client_components/")
+
+    tags = []
+
+    # **If in Development Mode, inject Vite Dev Server links**
+    if is_debug:
+        return mark_safe(
+            f'''
+            <script type="module" src="{vite_dev_url}@vite/client"></script>
+            <script type="module" src="{vite_dev_url}{client_components_path}main.js"></script>
+            '''
+        )
+
+    # **If in Production Mode, load from manifest.json**
     if not os.path.exists(manifest_path):
-        print("manifest path does not exist")
-        return
-    #     return f"{{ <!-- Vite manifest.json not found in static files -->|safe }} "
-    manifest = {}
+        raise template.TemplateSyntaxError(f"Vite manifest.json not found at {manifest_path}")
 
     try:
         with open(manifest_path, "r", encoding="utf-8") as f:
             manifest = json.load(f)
-
     except Exception as e:
-        print("error", e)
+        raise template.TemplateSyntaxError(f"Error loading Vite manifest.json: {str(e)}")
 
-        pass
-        # TODO: REMOVE THIS DANGEROUS ERROR HANDLING, ADD A PROPER ONE
-        # return f"<!-- Error loading Vite manifest.json: {str(e)} -->"
-
-    # TODO: add come parsing to manifest
-    # if entry_name not in manifest:
-    #     return f"<!-- Entry '{entry_name}' not found in Vite manifest.json -->"
-
+    # **Extract JS & CSS files**
     js_files = {k: v for k, v in manifest.items() if k.endswith(".js")}
     css_files = {k: v for k, v in manifest.items() if k.endswith(".css")}
 
-    tags = []
-
     for file in js_files.values():
         tags.append(
-            f'<script type="module" src="{client_components_static_url}{file['file']}"></script>'
+            f'<script type="module" src="{client_components_static_url}{file["file"]}"></script>'
         )
 
     for file in css_files.values():
         tags.append(
-            f'<link rel="stylesheet" href="{client_components_static_url}{file['file']}">'
+            f'<link rel="stylesheet" href="{client_components_static_url}{file["file"]}">'
         )
 
     return mark_safe("\n".join(tags))

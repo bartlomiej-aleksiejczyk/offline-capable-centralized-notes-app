@@ -164,4 +164,5 @@ SESSION_COOKIE_SECURE = True
 
 CLIENT_COMPONENT_SETTINGS = {
     "MANIFEST_FILE_PATH": "client_components__dist/.vite/manifest.json",
+    "CLIENT_COMPONENTS_PATH": "client_components/",
 }
