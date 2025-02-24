@@ -5,6 +5,15 @@
 ```
 
 ```bash
+  pip install -r requirements.txt
+```
+
+```bash
+pip freeze --local > requirements.txt
+```
+
+
+```bash
   npm run dev
 ```
 
