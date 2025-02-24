@@ -1,6 +1,6 @@
-@import "globals/reset.css";
-@import "globals/styles.css";
-@import "globals/variables.css";
+@import "./globals/reset.css";
+@import "./globals/styles.css";
+@import "./globals/variables.css";
 
 .main-navbar {
     display: flex;

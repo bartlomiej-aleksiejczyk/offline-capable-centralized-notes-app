@@ -3,7 +3,7 @@
 {% block content %}
     <div class="notes-layout">
 
-        <div class="notes-display">
+        <div class="notes-display grow">
             <div class="notes-display__header">
                 <h3>local~note</h3>
             </div>
@@ -26,6 +26,14 @@
         </div>
 
     </div>
+    <style>
+        .errorlist {
+            max-width: 30ch;
+            list-style-type: none;
+            background-color: var(--color-background-light-contrast);
+            padding: 0.5rem;
+        }
+    </style>
     <script>
         let debounceTimer = null;
 
