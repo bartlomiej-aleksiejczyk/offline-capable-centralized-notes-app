@@ -23,7 +23,7 @@
                         <option value="">-- Not Assigned --</option>
                         {% for d in directory_list %}
                             <option value="{{ d.id }}"
-                                    {% if d.id|stringformat:"s" == selected_directory %}selected{% endif %}>
+                                    {% if d.id == selected_directory %}selected{% endif %}>
                                 {{ d.title }}
                             </option>
                         {% endfor %}
@@ -99,6 +99,7 @@
     <form id="create_note_form" method="POST" style="display:none;">
         {% csrf_token %}
         <input type="hidden" name="action" value="create_note">
+        <input type="hidden" name="note_directory_id" id="note_directory_id_input">
         <input type="hidden" name="note_title" id="note_title_input">
     </form>
 
@@ -116,7 +117,9 @@
     </form>
 
     <script>
-        const noteTitle = '{% if selected_note %}{{ selected_note.title }}{% endif %}';
+        const noteTitle = {% firstof selected_note.title 'null' %}
+        let documentHideTime = null;
+
         jQuery(document).ready(function () {
                 if (noteTitle === "local~note") {
                     loadDefaultNote();
@@ -127,6 +130,8 @@
         document.addEventListener("visibilitychange", function () {
             if (!document.hidden) {
                 location.reload();
+            } else {
+                documentHideTime = Date.now();
             }
         });
 
@@ -140,8 +145,11 @@
 
         function promptNewNote() {
             const noteTitle = prompt("Enter a name for the new Note:");
+            const noteDirectoryId = {% firstof selected_directory 'null' %}
+
             if (noteTitle && noteTitle.trim().length > 0) {
                 document.getElementById("note_title_input").value = noteTitle.trim();
+                document.getElementById("note_directory_id_input").value = noteDirectoryId;
                 document.getElementById("create_note_form").submit();
             }
         }
