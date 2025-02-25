@@ -117,8 +117,9 @@
     </form>
 
     <script>
-        const noteTitle = {% firstof selected_note.title 'null' %}
+        const noteTitle = {% if selected_note.title %}'{{selected_note.title}}'{%else%}null{%endif%};
         let documentHideTime = null;
+        const HIDDEN_TAB_RELOAD_TIME_MINUTES = 1
 
         jQuery(document).ready(function () {
                 if (noteTitle === "local~note") {
@@ -129,7 +130,10 @@
 
         document.addEventListener("visibilitychange", function () {
             if (!document.hidden) {
-                location.reload();
+                reloadTime = new Date(documentHideTime.getTime() + HIDDEN_TAB_RELOAD_TIME_MINUTES*60000);
+                if (Date.now() >= reloadTime) {
+                    location.reload();
+                }
             } else {
                 documentHideTime = Date.now();
             }
@@ -213,7 +217,7 @@
         function resetInactivityTimer() {
             clearTimeout(inactivityTimeout);
             inactivityTimeout = setTimeout(() => {
-                    location.reload();
+                !document.hidden && location.reload();
                 }, 60000
             );
         }
