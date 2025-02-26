@@ -37,7 +37,7 @@
                 <div class="note-titles-list__item  {% if selected_note.title == 'local~note' %} note-titles-list__item--selected {% endif %}">
                     <a onclick="setLocalSelectedNote({{ note.id }})"
                        class="note-titles-list__select-button"
-                           href="?{% if selected_directory %}directory={{ selected_directory }}&{% endif %}note=local~note"
+                       href="?{% if selected_directory %}directory={{ selected_directory }}&{% endif %}note=local~note"
                     >
                         <span class="note-titles-list__text">local~note</span>
                     </a>
@@ -119,7 +119,7 @@
     <script>
         const noteTitle = {% if selected_note.title %}'{{selected_note.title}}'{%else%}null{%endif%};
         let documentHideTime = null;
-        const HIDDEN_TAB_RELOAD_TIME_MINUTES = 1
+        const HIDDEN_TAB_RELOAD_TIME_MINUTES = 1;
 
         jQuery(document).ready(function () {
                 if (noteTitle === "local~note") {
@@ -130,7 +130,7 @@
 
         document.addEventListener("visibilitychange", function () {
             if (!document.hidden) {
-                reloadTime = new Date(documentHideTime.getTime() + HIDDEN_TAB_RELOAD_TIME_MINUTES*60000);
+                reloadTime = new Date(documentHideTime.getTime() + HIDDEN_TAB_RELOAD_TIME_MINUTES * 60000);
                 if (Date.now() >= reloadTime) {
                     location.reload();
                 }
@@ -149,7 +149,7 @@
 
         function promptNewNote() {
             const noteTitle = prompt("Enter a name for the new Note:");
-            const noteDirectoryId = {% firstof selected_directory 'null' %}
+            const noteDirectoryId = {% if selected_directory %}{{ selected_directory }}{% else %}null{%endif%};
 
             if (noteTitle && noteTitle.trim().length > 0) {
                 document.getElementById("note_title_input").value = noteTitle.trim();
@@ -217,7 +217,7 @@
         function resetInactivityTimer() {
             clearTimeout(inactivityTimeout);
             inactivityTimeout = setTimeout(() => {
-                !document.hidden && location.reload();
+                    !document.hidden && location.reload();
                 }, 60000
             );
         }
