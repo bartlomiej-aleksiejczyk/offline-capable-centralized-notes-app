@@ -55,6 +55,13 @@ def note_list(request):
             return redirect("notes:note_list")
 
     directory_id = request.GET.get("directory")
+
+    note_filter_options = None
+    if directory_id == "all":
+        note_filter_options = 'all'
+    elif directory_id == "":
+        note_filter_options = 'not-assigned'
+
     directory_id = (
         int(directory_id) if directory_id and directory_id.isdigit() else None
     )
@@ -69,17 +76,21 @@ def note_list(request):
     else:
         selected_note_id = request.session.get("selected_note_id")
         if (
-            selected_note_id and selected_note_id != LOCAL_NOTE_NAME
+                selected_note_id and selected_note_id != LOCAL_NOTE_NAME
         ):  # Ensure it's not None
             if not Note.objects.filter(
-                pk=selected_note_id
+                    pk=selected_note_id
             ).exists():  # Check if the note exists safely
                 request.session.pop("selected_note_id", None)
-
+    if note_filter_options == "all":
+        notes = Note.objects.filter(user=user).order_by(
+            "directory", "index", "title"
+        )
+    else:
+        notes = Note.objects.filter(user=user, directory_id=directory_id).order_by(
+            "directory", "index", "title"
+        )
     # Filter notes by user and directory
-    notes = Note.objects.filter(user=user, directory_id=directory_id).order_by(
-        "directory", "index", "title"
-    )
 
     selected_note = None
     if selected_note_id and (selected_note_id != LOCAL_NOTE_NAME):
@@ -89,6 +100,7 @@ def note_list(request):
 
     context = {
         "directory_list": directories,
+        "note_filter_options": note_filter_options,
         "selected_directory": directory_id,
         "notes": notes,
         "selected_note": selected_note,
@@ -172,7 +184,6 @@ def note_detail(request, id):
 
 from django.http import (
     HttpResponseBadRequest,
-    HttpResponseRedirect,
     JsonResponse,
     QueryDict,
 )

@@ -20,7 +20,11 @@
                 <!-- Dropdown for directories -->
                 <div class="dropdown" style="margin: 0rem calc(1rem + 2px) 0.3rem;">
                     <select class="dropdown-input" onchange="location.href='?directory='+this.value">
-                        <option value="">-- Not Assigned --</option>
+                        <option value="" {% if note_filter_options == 'not-assigned' %}selected{% endif %}>-- Not
+                            Assigned --
+                        </option>
+                        <option value="all" {% if note_filter_options == 'all' %}selected{% endif %}>-- All Notes --
+                        </option>
                         {% for d in directory_list %}
                             <option value="{{ d.id }}"
                                     {% if d.id == selected_directory %}selected{% endif %}>

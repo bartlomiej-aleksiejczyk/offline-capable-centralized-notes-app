@@ -28,7 +28,7 @@
         <!-- Additional head content (e.g., scripts, meta tags) -->
     {% endblock extrahead %}
 </head>
-<body>
+<body class="hidden-until-js">
 <!-- Header -->
 {% block header %}
     <!-- Optional header content -->
@@ -48,40 +48,48 @@
     <!-- Optional footer content -->
 {% endblock footer %}
 <!-- Scripts -->
+{% block inlinecss %}
+    <style>
+        .hidden-until-js {
+            visibility: hidden;
+        }
+    </style>
+{% endblock inlinecss %}
+
 {% block scripts %}
     <script>
-        jQuery(document).ready(function () {
-            function updateMobileLayout() {
-                const winWidth = jQuery(window).width();
-                if (winWidth < 768) {
-                    jQuery(".notes-sidebar").addClass("notes-sidebar--mobile");
-                    jQuery(".main-container-wrapper").addClass("main-container-wrapper--mobile");
-                    jQuery(".main-navbar").addClass("main-navbar--mobile");
-                    jQuery(".notes-directory").addClass("notes-directory--mobile");
-                    jQuery(".notes-layout").addClass("notes-layout--mobile");
-                    jQuery(".notes-display__textarea").addClass("notes-display__textarea--mobile");
-                    jQuery("#notes-display-desktop").hide();
-                    jQuery("#notes-display-mobile-icon").show();
-                } else {
-                    jQuery(".notes-sidebar").removeClass("notes-sidebar--mobile");
-                    jQuery(".main-container-wrapper").removeClass("main-container-wrapper--mobile");
-                    jQuery(".main-navbar").removeClass("main-navbar--mobile");
-                    jQuery(".notes-directory").removeClass("notes-directory--mobile");
-                    jQuery(".notes-layout").removeClass("notes-layout--mobile");
-                    jQuery(".notes-display__textarea").removeClass("notes-display__textarea--mobile");
-                    jQuery("#notes-display-desktop").show();
-                    jQuery("#notes-display-mobile-icon").hide();
+        document.addEventListener("DOMContentLoaded", function () {
 
-                }
+            const mobileElements = [
+                "notes-sidebar",
+                "main-container-wrapper",
+                "main-navbar",
+                "notes-directory",
+                "notes-layout",
+                "notes-display__textarea"
+            ];
+
+            function updateMobileLayout() {
+                const isMobile = window.innerWidth < 768;
+
+                mobileElements.forEach(className => {
+                    document.querySelectorAll(`.${className}`).forEach(el => {
+                        el.classList.toggle(`${className}--mobile`, isMobile);
+                    });
+                });
+
+                ["notes-display-desktop", "notes-display-mobile-icon"].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.style.display = id === "notes-display-desktop" ? (isMobile ? "none" : "flex") : (isMobile ? "block" : "none");
+                });
+
             }
 
             updateMobileLayout();
-
-            jQuery(window).on("resize orientationchange", function () {
-                updateMobileLayout();
-            });
-
+            window.addEventListener("resize", updateMobileLayout);
+            document.body.classList.remove("hidden-until-js");
         });
+
     </script>
 {% endblock scripts %}
 {% block extrajs %}
