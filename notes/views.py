@@ -125,6 +125,20 @@ def ajax_update_note(request, note_id):
     return JsonResponse({"status": "error", "message": "Only POST allowed"}, status=400)
 
 
+def ajax_load_note(request, note_id):
+    """
+    AJAX endpoint to load a note's content.
+    """
+    if request.method == "GET":
+        new_content = request.POST.get("content", "")
+        note = get_object_or_404(
+            Note, pk=note_id, user=request.user
+        )  # Ensure user owns the note
+        return JsonResponse({"status": "ok", "result": {'note': note}})
+
+    return JsonResponse({"status": "error", "message": "Only POST allowed"}, status=400)
+
+
 @require_POST
 def ajax_update_note_order(request):
     """

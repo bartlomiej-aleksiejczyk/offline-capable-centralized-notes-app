@@ -80,22 +80,27 @@
         </div>
 
         <!-- RIGHT AREA: if no note is selected, just show a placeholder -->
-        <div class="notes-display" id="notes-display-desktop">
-            {% if selected_note %}
-                <div class="notes-display__header">
-                    <h3>{{ selected_note.title }}</h3>
-                </div>
-                <div class="notes-display__content flex flex-column">
-                <textarea id="noteContent"
-                          class="notes-display__textarea flex-1 resize-none"
-                          oninput="debounceSave()">{{ selected_note.content }}</textarea>
-                </div>
-            {% else %}
-                <div class="notes-display__no-content">
-                    <h3>Select a note to see details.</h3>
-                </div>
-            {% endif %}
-        </div>
+        <notes-display class="grow flex"
+                       selectednoteid='{{ selected_note.id }}'
+                       selectednotetitle='{{ selected_note.title }}'
+                       selectednotecontent='{{ selected_note.content }}'
+                       csrf-token="{{ csrf_token }}"></notes-display>
+        {#        <div class="notes-display" id="notes-display-desktop">#}
+        {#            {% if selected_note %}#}
+        {#                <div class="notes-display__header">#}
+        {#                    <h3>{{ selected_note.title }}</h3>#}
+        {#                </div>#}
+        {#                <div class="notes-display__content flex flex-column">#}
+        {#                <textarea id="noteContent"#}
+        {#                          class="notes-display__textarea flex-1 resize-none"#}
+        {#                          oninput="debounceSave()">{{ selected_note.content }}</textarea>#}
+        {#                </div>#}
+        {#            {% else %}#}
+        {#                <div class="notes-display__no-content">#}
+        {#                    <h3>Select a note to see details.</h3>#}
+        {#                </div>#}
+        {#            {% endif %}#}
+        {#        </div>#}
     </div>
 
     <!-- HIDDEN FORM: CREATE NOTE -->
