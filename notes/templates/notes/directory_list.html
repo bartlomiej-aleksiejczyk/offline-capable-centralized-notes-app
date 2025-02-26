@@ -87,29 +87,13 @@
     </div>
 
     <!-- Hidden form for create/rename/delete directory -->
-    <form id="directory_form" method="POST" style="display:none;">
+    <form id="directory_form" method="POST" class="hidden">
         {% csrf_token %}
         <input type="hidden" name="action" id="action_input">
         <input type="hidden" name="directory_id" id="directory_id_input">
         <input type="hidden" name="directory_title" id="directory_title_input"> <!-- for create -->
         <input type="hidden" name="new_title" id="new_title_input">            <!-- for rename -->
     </form>
-
-    <!-- Basic styles for drag & drop feedback -->
-    <style>
-        /* Style for the placeholder inserted during dragging */
-        .drag-placeholder {
-            border: 2px dashed #ccc;
-            background: #f8f8f8;
-            margin: 4px 0;
-        }
-
-        /* Optional: reduce opacity for the element being dragged */
-        .notes-directory-content__file-item.dragging {
-            opacity: 0.5;
-            pointer-events: none;
-        }
-    </style>
 
     <!-- Vanilla JS for drag & drop with mobile (using pointer events) -->
     <script>

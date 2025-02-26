@@ -18,7 +18,7 @@
                 </div>
 
                 <!-- Dropdown for directories -->
-                <div class="dropdown" style="margin: 0rem calc(1rem + 2px) 0.3rem;">
+                <div class="dropdown mt-0 mb-[0.3rem] mx-[calc(1rem+2px)]">
                     <select class="dropdown-input" onchange="location.href='?directory='+this.value">
                         <option value="" {% if note_filter_options == 'not-assigned' %}selected{% endif %}>-- Not
                             Assigned --
@@ -74,7 +74,7 @@
                         </div>
                     </div>
                 {% empty %}
-                    <p style="margin: 1rem;">No notes found.</p>
+                    <p class="m-4">No notes found.</p>
                 {% endfor %}
             </div>
         </div>
@@ -85,10 +85,9 @@
                 <div class="notes-display__header">
                     <h3>{{ selected_note.title }}</h3>
                 </div>
-                <div class="notes-display__content" style="display: flex; flex-direction: column;">
+                <div class="notes-display__content flex flex-column">
                 <textarea id="noteContent"
-                          class="notes-display__textarea"
-                          style="flex:1; resize: none;"
+                          class="notes-display__textarea flex-1 resize-none"
                           oninput="debounceSave()">{{ selected_note.content }}</textarea>
                 </div>
             {% else %}
@@ -100,21 +99,21 @@
     </div>
 
     <!-- HIDDEN FORM: CREATE NOTE -->
-    <form id="create_note_form" method="POST" style="display:none;">
+    <form id="create_note_form" method="POST" class="hidden">
         {% csrf_token %}
         <input type="hidden" name="action" value="create_note">
         <input type="hidden" name="note_directory_id" id="note_directory_id_input">
         <input type="hidden" name="note_title" id="note_title_input">
     </form>
 
-    <form id="rename_note_form" method="POST" style="display:none;">
+    <form id="rename_note_form" method="POST" class="hidden">
         {% csrf_token %}
         <input type="hidden" name="action" value="rename_note">
         <input type="hidden" name="note_id" id="note_id_input">
         <input type="hidden" name="new_title" id="new_note_title_input">
     </form>
 
-    <form id="delete_note_form" method="POST" style="display:none;">
+    <form id="delete_note_form" method="POST" class="hidden">
         {% csrf_token %}
         <input type="hidden" name="action" value="delete_note">
         <input type="hidden" name="note_id" id="delete_note_id_input">

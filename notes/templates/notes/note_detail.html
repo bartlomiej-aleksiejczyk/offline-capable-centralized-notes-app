@@ -12,10 +12,9 @@
                 <div class="notes-display__header">
                     <h3>{{ selected_note.title }}</h3>
                 </div>
-                <div class="notes-display__content" style="display: flex; flex-direction: column;">
+                <div class="notes-display__content flex flex-column">
                 <textarea id="noteContent"
-                          class="notes-display__textarea"
-                          style="flex:1; resize: none;"
+                          class="notes-display__textarea resize-none flex-1"
                           oninput="debounceSave()">{{ selected_note.content }}</textarea>
                 </div>
             {% else %}
@@ -27,7 +26,7 @@
     </div>
 
     <!-- Hidden form for create/rename/delete directory -->
-    <form id="directory_form" method="POST" style="display:none;">
+    <form id="directory_form" method="POST" class="hidden">
         {% csrf_token %}
         <input type="hidden" name="action" id="action_input">
         <input type="hidden" name="directory_id" id="directory_id_input">
