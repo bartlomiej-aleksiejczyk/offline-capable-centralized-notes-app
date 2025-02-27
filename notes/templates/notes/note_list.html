@@ -81,10 +81,11 @@
 
         <!-- RIGHT AREA: if no note is selected, just show a placeholder -->
         <notes-display class="grow flex"
-                       selectednoteid='{{ selected_note.id }}'
-                       selectednotetitle='{{ selected_note.title }}'
-                       selectednotecontent='{{ selected_note.content }}'
-                       csrf-token="{{ csrf_token }}"></notes-display>
+                        ajaxNoteEndpoint= '{% url 'notes_api:note_detail' note_id=selected_note.id %}'
+                        selectednoteid='{{ selected_note.id }}'
+                        selectednotetitle='{{ selected_note.title }}'
+                        selectednotecontent='{{ selected_note.content }}'
+                        csrftoken="{{ csrf_token }}"></notes-display>
         {#        <div class="notes-display" id="notes-display-desktop">#}
         {#            {% if selected_note %}#}
         {#                <div class="notes-display__header">#}
@@ -126,7 +127,6 @@
 
     <script>
         const noteTitle = {% if selected_note.title %}'{{selected_note.title}}'{%else%}null{%endif%};
-        let documentHideTime = null;
         const HIDDEN_TAB_RELOAD_TIME_MINUTES = 1;
 
         jQuery(document).ready(function () {
@@ -184,7 +184,7 @@
 
             if (!noteId) return;
 
-            const url = "{% url 'notes:ajax_update_note' 0 %}".replace("/0/", "/" + noteId + "/");
+            const url = "{% url 'notes_api:note_detail' 0 %}".replace("/0/", "/" + noteId + "/");
 
             fetch(url, {
                 method: "POST",

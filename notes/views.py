@@ -28,7 +28,6 @@ def note_list(request):
             query_dictionary = QueryDict("", mutable=True)
             if note_directory_id:
                 query_dictionary.update({"directory": note_directory_id})
-
             url = "{base_url}?{querystring}".format(
                 base_url=reverse("notes:note_list"),
                 querystring=query_dictionary.urlencode(),
@@ -58,9 +57,9 @@ def note_list(request):
 
     note_filter_options = None
     if directory_id == "all":
-        note_filter_options = 'all'
+        note_filter_options = "all"
     elif directory_id == "":
-        note_filter_options = 'not-assigned'
+        note_filter_options = "not-assigned"
 
     directory_id = (
         int(directory_id) if directory_id and directory_id.isdigit() else None
@@ -76,16 +75,14 @@ def note_list(request):
     else:
         selected_note_id = request.session.get("selected_note_id")
         if (
-                selected_note_id and selected_note_id != LOCAL_NOTE_NAME
+            selected_note_id and selected_note_id != LOCAL_NOTE_NAME
         ):  # Ensure it's not None
             if not Note.objects.filter(
-                    pk=selected_note_id
+                pk=selected_note_id
             ).exists():  # Check if the note exists safely
                 request.session.pop("selected_note_id", None)
     if note_filter_options == "all":
-        notes = Note.objects.filter(user=user).order_by(
-            "directory", "index", "title"
-        )
+        notes = Note.objects.filter(user=user).order_by("directory", "index", "title")
     else:
         notes = Note.objects.filter(user=user, directory_id=directory_id).order_by(
             "directory", "index", "title"
@@ -109,34 +106,38 @@ def note_list(request):
 
 
 # TODO: check csrf safety
-def ajax_update_note(request, note_id):
+def notes_detail_ajax(request, note_id):
     """
     AJAX endpoint to update a note's content.
     """
     if request.method == "POST":
-        new_content = request.POST.get("content", "")
+        json_data = json.loads(request.body)
+
+        print(json_data)
+        new_content = json_data["content"]
+
         note = get_object_or_404(
             Note, pk=note_id, user=request.user
         )  # Ensure user owns the note
         note.content = new_content
         note.save()
-        return JsonResponse({"status": "ok", "note_id": note_id})
+        return JsonResponse({"status": "ok", "result": {"note_id": note_id}})
 
-    return JsonResponse({"status": "error", "message": "Only POST allowed"}, status=400)
-
-
-def ajax_load_note(request, note_id):
-    """
-    AJAX endpoint to load a note's content.
-    """
-    if request.method == "GET":
-        new_content = request.POST.get("content", "")
+    elif request.method == "GET":
         note = get_object_or_404(
             Note, pk=note_id, user=request.user
         )  # Ensure user owns the note
-        return JsonResponse({"status": "ok", "result": {'note': note}})
+        print(note)
+        return JsonResponse(
+            {
+                "status": "ok",
+                "result": {"note_content": note.content, "note_title": note.title},
+            }
+        )
 
-    return JsonResponse({"status": "error", "message": "Only POST allowed"}, status=400)
+    return JsonResponse(
+        {"status": "error", "message": "Only POST and GET allowed"}, status=400
+    )
 
 
 @require_POST
