@@ -2,109 +2,16 @@
 {% load static %}
 
 {% block title %}
-    View Directories
+    View Note's Datails
 {% endblock title %}
 {% block layout %}
     <!-- Main Directory Container -->
     <div class="notes-directory">
-        <div class="notes-display">
-            {% if selected_note %}
-                <div class="notes-display__header">
-                    <h3>{{ selected_note.title }}</h3>
-                </div>
-                <div class="notes-display__content flex flex-column">
-                <textarea id="noteContent"
-                          class="notes-display__textarea resize-none flex-1"
-                          oninput="debounceSave()">{{ selected_note.content }}</textarea>
-                </div>
-            {% else %}
-                <div class="notes-display__no-content">
-                    <h3>Select a note to see details.</h3>
-                </div>
-            {% endif %}
-        </div>
+        <note-display class="grow flex"
+                        ajaxNoteEndpoint= '{% url 'notes_api:note_detail' id=selected_note_compatible_id %}'
+                        selectednoteid='{% firstof selected_note_compatible_id null %}'
+                        initialselectednotetitle='{{ selected_note.title }}'
+                        initialselectednotecontent='{{ selected_note.content }}'
+                        csrftoken="{{ csrf_token }}"></note-display>
     </div>
-
-    <!-- Hidden form for create/rename/delete directory -->
-    <form id="directory_form" method="POST" class="hidden">
-        {% csrf_token %}
-        <input type="hidden" name="action" id="action_input">
-        <input type="hidden" name="directory_id" id="directory_id_input">
-        <input type="hidden" name="directory_title" id="directory_title_input"> <!-- for create -->
-        <input type="hidden" name="new_title" id="new_title_input">            <!-- for rename -->
-    </form>
-
-    <script>
-        let debounceTimer = null;
-
-        const noteTitle = '{% if selected_note %}{{ selected_note.title }}{% endif %}';
-        jQuery(document).ready(function () {
-                if (noteTitle === "local~note") {
-                    loadDefaultNote();
-                }
-            }
-        );
-
-        function loadDefaultNote() {
-            document.getElementById("noteContent").value = localStorage.getItem("localNote");
-        }
-
-        document.addEventListener("visibilitychange", function () {
-            if (!document.hidden) {
-                location.reload();
-            }
-        });
-
-        function debounceSave() {
-            if (debounceTimer) clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(saveNoteContent, 1000);
-        }
-
-        function saveNoteContent() {
-            const content = document.getElementById("noteContent").value;
-            const noteId = '{% if selected_note %}{{ selected_note.id }}{% endif %}';
-            const noteTitle = '{% if selected_note %}{{ selected_note.title }}{% endif %}';
-
-            if (noteTitle === "local~note") {
-                localStorage.setItem("localNote", content);
-            }
-
-            if (!noteId) return;
-
-            const url = "{% url 'notes:ajax_update_note' 0 %}".replace("/0/", "/" + noteId + "/");
-
-            fetch(url, {
-                method: "POST",
-                headers: {
-                    "X-CSRFToken": '{{ csrf_token }}',
-                    "Content-Type": "application/x-www-form-urlencoded",
-                },
-                body: new URLSearchParams({content: content})
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === "ok") {
-                    } else {
-                        console.error("Error updating note:", data);
-                    }
-                })
-                .catch(err => console.error("Ajax error:", err));
-        }
-
-        let inactivityTimeout;
-
-        function resetInactivityTimer() {
-            clearTimeout(inactivityTimeout);
-            inactivityTimeout = setTimeout(() => {
-                location.reload();
-            }, 60000);
-        }
-
-        ["mousemove", "keydown", "scroll", "click", "touchstart"].forEach(event => {
-            document.addEventListener(event, resetInactivityTimer);
-        });
-
-        resetInactivityTimer();
-
-    </script>
 {% endblock layout %}

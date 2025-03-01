@@ -6,7 +6,7 @@
 {% block layout %}
     <div class="notes-layout">
         <!-- LEFT SIDEBAR -->
-        <div class="notes-sidebar">
+        <div class="notes-sidebar" up-poll>
             <div class="sidebar-sticky-wrapper">
                 <div class="sidebar-button-wrapper">
                     <button onclick="promptNewNote()" class="button sidebar-button">Add New Note</button>
@@ -80,28 +80,12 @@
         </div>
 
         <!-- RIGHT AREA: if no note is selected, just show a placeholder -->
-        <notes-display class="grow flex"
-                        ajaxNoteEndpoint= '{% url 'notes_api:note_detail' note_id=selected_note.id %}'
-                        selectednoteid='{{ selected_note.id }}'
-                        selectednotetitle='{{ selected_note.title }}'
-                        selectednotecontent='{{ selected_note.content }}'
-                        csrftoken="{{ csrf_token }}"></notes-display>
-        {#        <div class="notes-display" id="notes-display-desktop">#}
-        {#            {% if selected_note %}#}
-        {#                <div class="notes-display__header">#}
-        {#                    <h3>{{ selected_note.title }}</h3>#}
-        {#                </div>#}
-        {#                <div class="notes-display__content flex flex-column">#}
-        {#                <textarea id="noteContent"#}
-        {#                          class="notes-display__textarea flex-1 resize-none"#}
-        {#                          oninput="debounceSave()">{{ selected_note.content }}</textarea>#}
-        {#                </div>#}
-        {#            {% else %}#}
-        {#                <div class="notes-display__no-content">#}
-        {#                    <h3>Select a note to see details.</h3>#}
-        {#                </div>#}
-        {#            {% endif %}#}
-        {#        </div>#}
+        <note-display class="grow flex"
+                        ajaxNoteEndpoint= '{% url 'notes_api:note_detail' id=selected_note_compatible_id %}'
+                        selectednoteid='{% if selected_note_compatible_id  %}{{ selected_note_compatible_id }}{% endif %}'
+                        initialselectednotetitle='{{ selected_note.title }}'
+                        initialselectednotecontent='{{ selected_note.content }}'
+                        csrftoken="{{ csrf_token }}"></note-display>
     </div>
 
     <!-- HIDDEN FORM: CREATE NOTE -->
@@ -126,35 +110,6 @@
     </form>
 
     <script>
-        const noteTitle = {% if selected_note.title %}'{{selected_note.title}}'{%else%}null{%endif%};
-        const HIDDEN_TAB_RELOAD_TIME_MINUTES = 1;
-
-        jQuery(document).ready(function () {
-                if (noteTitle === "local~note") {
-                    loadDefaultNote();
-                }
-            }
-        );
-
-        document.addEventListener("visibilitychange", function () {
-            if (!document.hidden) {
-                reloadTime = new Date(documentHideTime.getTime() + HIDDEN_TAB_RELOAD_TIME_MINUTES * 60000);
-                if (Date.now() >= reloadTime) {
-                    location.reload();
-                }
-            } else {
-                documentHideTime = Date.now();
-            }
-        });
-
-        function loadDefaultNote() {
-            document.getElementById("noteContent").value = localStorage.getItem("localNote");
-        }
-
-        function setLocalSelectedNote(noteId) {
-            localStorage.setItem("selectedNoteId", noteId);
-        }
-
         function promptNewNote() {
             const noteTitle = prompt("Enter a name for the new Note:");
             const noteDirectoryId = {% if selected_directory %}{{ selected_directory }}{% else %}null{%endif%};
@@ -165,45 +120,6 @@
                 document.getElementById("create_note_form").submit();
             }
         }
-
-        let debounceTimer = null;
-
-        function debounceSave() {
-            if (debounceTimer) clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(saveNoteContent, 1000);
-        }
-
-        function saveNoteContent() {
-            const content = document.getElementById("noteContent").value;
-            const noteId = '{% if selected_note %}{{ selected_note.id }}{% endif %}';
-            const noteTitle = '{% if selected_note %}{{ selected_note.title }}{% endif %}';
-
-            if (noteTitle === "local~note") {
-                localStorage.setItem("localNote", content);
-            }
-
-            if (!noteId) return;
-
-            const url = "{% url 'notes_api:note_detail' 0 %}".replace("/0/", "/" + noteId + "/");
-
-            fetch(url, {
-                method: "POST",
-                headers: {
-                    "X-CSRFToken": '{{ csrf_token }}',
-                    "Content-Type": "application/x-www-form-urlencoded",
-                },
-                body: new URLSearchParams({content: content})
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === "ok") {
-                    } else {
-                        console.error("Error updating note:", data);
-                    }
-                })
-                .catch(err => console.error("Ajax error:", err));
-        }
-
         function renameNotePrompt(noteId, oldName) {
             const newName = prompt("Rename Note:", oldName);
             if (newName && newName.trim() !== "" && newName.trim() !== oldName) {
@@ -220,21 +136,9 @@
             }
         }
 
-        let inactivityTimeout;
-
-        function resetInactivityTimer() {
-            clearTimeout(inactivityTimeout);
-            inactivityTimeout = setTimeout(() => {
-                    !document.hidden && location.reload();
-                }, 60000
-            );
+        //TODO: check if persisting selected note is needed
+        function setLocalSelectedNote(noteId) {
+            localStorage.setItem("selectedNoteId", noteId);
         }
-
-        ["mousemove", "keydown", "scroll", "click", "touchstart"].forEach(event => {
-            document.addEventListener(event, resetInactivityTimer);
-        });
-
-        resetInactivityTimer();
-
     </script>
 {% endblock layout %}

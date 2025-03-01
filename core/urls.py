@@ -24,5 +24,5 @@ urlpatterns = [
     path("", include("common.urls", namespace="common")),
     path("", RedirectView.as_view(url=reverse_lazy("notes:note_list"), permanent=True)),
     path("notes/", include("notes.urls", namespace="notes")),
-    path("api/v1/notes", include("notes.urls_api", namespace="notes_api")),
+    path("api/v1/notes/", include("notes.urls_api", namespace="notes_api")),
 ]

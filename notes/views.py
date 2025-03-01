@@ -94,40 +94,39 @@ def note_list(request):
         selected_note = get_object_or_404(Note, pk=selected_note_id, user=user)
     elif selected_note_id == LOCAL_NOTE_NAME:
         selected_note = {"title": LOCAL_NOTE_NAME, "content": ""}
-
+    print(type(selected_note_id))
     context = {
         "directory_list": directories,
         "note_filter_options": note_filter_options,
         "selected_directory": directory_id,
         "notes": notes,
         "selected_note": selected_note,
+        "selected_note_compatible_id": selected_note_id,
     }
     return render(request, "notes/note_list.html", context)
 
 
 # TODO: check csrf safety
-def notes_detail_ajax(request, note_id):
+def notes_detail_ajax(request, id):
     """
     AJAX endpoint to update a note's content.
     """
     if request.method == "POST":
         json_data = json.loads(request.body)
 
-        print(json_data)
         new_content = json_data["content"]
 
         note = get_object_or_404(
-            Note, pk=note_id, user=request.user
+            Note, pk=id, user=request.user
         )  # Ensure user owns the note
         note.content = new_content
         note.save()
-        return JsonResponse({"status": "ok", "result": {"note_id": note_id}})
+        return JsonResponse({"status": "ok", "result": {"note_id": id}})
 
     elif request.method == "GET":
         note = get_object_or_404(
-            Note, pk=note_id, user=request.user
+            Note, pk=id, user=request.user
         )  # Ensure user owns the note
-        print(note)
         return JsonResponse(
             {
                 "status": "ok",
