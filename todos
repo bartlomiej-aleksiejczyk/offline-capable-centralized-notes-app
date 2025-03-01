@@ -1,12 +1,11 @@
 ===
 FIRST_STAGE
 ===
+
 ===
 SECOND_STAGE
 ===
-# TODO: Add auth and permissions
-# TODO: Add bruteforce protection, harden security
-# TODO: prepare production-ready config
+
 ===
 NON_IMPORTANT
 ===

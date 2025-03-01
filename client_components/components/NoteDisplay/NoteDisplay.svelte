@@ -8,13 +8,7 @@
   import PlaintextNoteRenderer from "./note-renderers/PlaintextNoteRenderer.svelte";
   import UniversalRendererWrapper from "./note-renderers/UniversalRendererWrapper.svelte";
 
-  let {
-    ajaxNoteEndpoint,
-    selectedNoteId,
-    initialSelectedNoteTitle,
-    initialSelectedNoteContent = "",
-    csrfToken = "",
-  } = $props();
+  let { ajaxNoteEndpoint, selectedNoteId, csrfToken = "" } = $props();
 
   let { loadDefaultNote, loadNoteContent } = noteStoreService();
 
@@ -23,8 +17,6 @@
   });
 
   onMount(() => {
-    selectedNote.title = initialSelectedNoteTitle;
-    selectedNote.content = initialSelectedNoteContent;
     selectedNote.ajaxNoteEndpoint = ajaxNoteEndpoint;
     selectedNote.selectedNoteId = selectedNoteId;
     selectedNote.csrfToken = csrfToken;
