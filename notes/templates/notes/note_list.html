@@ -6,7 +6,7 @@
 {% block layout %}
     <div class="notes-layout">
         <!-- LEFT SIDEBAR -->
-        <div class="notes-sidebar" up-poll>
+        <div class="notes-sidebar" up-poll up-interval="60000">
             <div class="sidebar-sticky-wrapper">
                 <div class="sidebar-button-wrapper">
                     <button onclick="promptNewNote()" class="button sidebar-button">Add New Note</button>
@@ -16,23 +16,12 @@
                 <div class="sidebar-top-label">
                     <p>Choose directory:</p>
                 </div>
-
-                <!-- Dropdown for directories -->
-                <div class="dropdown mt-0 mb-[0.3rem] mx-[calc(1rem+2px)]">
-                    <select class="dropdown-input" onchange="location.href='?directory='+this.value">
-                        <option value="" {% if note_filter_options == 'not-assigned' %}selected{% endif %}>-- Not
-                            Assigned --
-                        </option>
-                        <option value="all" {% if note_filter_options == 'all' %}selected{% endif %}>-- All Notes --
-                        </option>
-                        {% for d in directory_list %}
-                            <option value="{{ d.id }}"
-                                    {% if d.id == selected_directory %}selected{% endif %}>
-                                {{ d.title }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
+                 <searchable-select
+                emptylabel="Empty"
+                options="{{ directory_list_json }}"
+                selectedoptionid= {% if selected_directory %}"{{ selected_directory }}"{% endif %}
+                >
+                </searchable-select>
             </div>
             {# TODO: Rename to unassigned notes someday                   #}
 

@@ -83,6 +83,7 @@ def note_list(request):
                 request.session.pop("selected_note_id", None)
     if note_filter_options == "all":
         notes = Note.objects.filter(user=user).order_by("directory", "index", "title")
+        directory_id = "all"
     else:
         notes = Note.objects.filter(user=user, directory_id=directory_id).order_by(
             "directory", "index", "title"
@@ -94,9 +95,16 @@ def note_list(request):
         selected_note = get_object_or_404(Note, pk=selected_note_id, user=user)
     elif selected_note_id == LOCAL_NOTE_NAME:
         selected_note = {"title": LOCAL_NOTE_NAME, "content": ""}
-    print(type(selected_note_id))
+    prepared_directories_list = [
+        ("-- Not Assigned --", ""),
+        ("-- All Notes --", "all"),
+    ]
+    prepared_directories_list.extend(list(directories.values_list("title", "id")))
+    directories_json = json.dumps(prepared_directories_list)
+
     context = {
         "directory_list": directories,
+        "directory_list_json": directories_json,
         "note_filter_options": note_filter_options,
         "selected_directory": directory_id,
         "notes": notes,
