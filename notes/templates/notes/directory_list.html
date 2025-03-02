@@ -63,17 +63,17 @@
 
                 {% for directory, notes in directories_with_notes %}
                     <div class="notes-directory-content__directory" data-directory-id="{{ directory.id }}">
-                        <div class="notes-directory-content__directory-header">
+                        <div class="notes-directory-content__directory-header" onclick="toggleCollapse(this)">
                             <span class="notes-directory-content__directory-title">{{ directory.title }}</span>
                             <button class="notes-directory-content__btn notes-directory-content__btn--collapse"
-                                    onclick="toggleCollapse(this)">
+                                    >
                                 <svg xmlns="http://www.w3.org/2000/svg" class="notes-directory-content__icon"
                                      height="24px" width="24px" viewBox="0 -1020 960 960">
                                     <path d="m357-384 123-123 123 123 57-56-180-180-180 180 57 56ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/>
                                 </svg>
                             </button>
                         </div>
-                        <ul class="notes-directory-content__file-list">
+                        <ul class="notes-directory-content__file-list" style="display: none">
                             {% for note in notes %}
                                 <li class="notes-directory-content__file-item" data-note-id="{{ note.id }}">
                                     {{ note.title }}
@@ -103,6 +103,8 @@
             placeholder.className = "drag-placeholder";
             let offsetX = 0, offsetY = 0;
             let originalContainer = null;
+            let autoScrollSpeed = 10; // Speed of auto-scrolling
+            let scrollInterval = null;
 
             // Attach pointer event listeners on all note items
             const noteItems = document.querySelectorAll(".notes-directory-content__file-item");
@@ -148,20 +150,16 @@
 
             function pointerMoveHandler(e) {
                 moveAt(e.pageX, e.pageY);
-
-                // Hide the dragged element momentarily to get the element underneath
+            
                 draggingEl.hidden = true;
                 let elemBelow = document.elementFromPoint(e.clientX, e.clientY);
                 draggingEl.hidden = false;
                 if (!elemBelow) return;
-
-                // Check if we are over a note list container
+            
                 let droppableContainer = elemBelow.closest(".notes-directory-content__file-list");
                 if (droppableContainer) {
-                    // Get the note items (excluding the one being dragged)
                     let items = Array.from(droppableContainer.querySelectorAll(".notes-directory-content__file-item:not(.dragging)"));
                     let inserted = false;
-                    // Insert the placeholder before the first item the pointer is above
                     for (let item of items) {
                         const rect = item.getBoundingClientRect();
                         if (e.clientY < rect.top + rect.height / 2) {
@@ -170,42 +168,62 @@
                             break;
                         }
                     }
-                    // If not inserted above any item, append at the end
                     if (!inserted) {
                         droppableContainer.appendChild(placeholder);
                     }
                 }
+            
+                // **Auto-scroll logic**
+                handleAutoScroll(e);
             }
 
+            function handleAutoScroll(e) {
+                const scrollMargin = 50; // Distance from the edge to start scrolling
+                const maxScrollSpeed = 20; // Max scroll speed
+                const minScrollSpeed = 5;  // Min scroll speed
+            
+                clearInterval(scrollInterval); // Clear previous scrolling interval
+            
+                if (e.clientY < scrollMargin) {
+                    // If near the top, scroll up
+                    let speed = Math.max(maxScrollSpeed * (1 - e.clientY / scrollMargin), minScrollSpeed);
+                    scrollInterval = setInterval(() => {
+                        window.scrollBy(0, -speed);
+                    }, 20);
+                } else if (e.clientY > window.innerHeight - scrollMargin) {
+                    // If near the bottom, scroll down
+                    let speed = Math.max(maxScrollSpeed * ((e.clientY - (window.innerHeight - scrollMargin)) / scrollMargin), minScrollSpeed);
+                    scrollInterval = setInterval(() => {
+                        window.scrollBy(0, speed);
+                    }, 20);
+                }
+            }
+            
+            
+
             function pointerUpHandler(e) {
-                // Remove pointer move and up listeners
                 document.removeEventListener("pointermove", pointerMoveHandler);
                 document.removeEventListener("pointerup", pointerUpHandler);
-
-                // Place the dragged element into the drop position
+            
+                clearInterval(scrollInterval); // Stop scrolling when drag ends
+            
                 placeholder.parentElement.insertBefore(draggingEl, placeholder);
-                // Clean up the dragged element’s styles
                 draggingEl.style.position = "";
                 draggingEl.style.zIndex = "";
                 draggingEl.style.left = "";
                 draggingEl.style.top = "";
                 draggingEl.style.width = "";
                 draggingEl.classList.remove("dragging");
-
-                // Determine new container and new index for the dragged note
+            
                 const newContainer = draggingEl.parentElement;
                 const noteItemsInContainer = Array.from(newContainer.querySelectorAll(".notes-directory-content__file-item"));
                 const newIndex = noteItemsInContainer.indexOf(draggingEl);
-                // The directory container is the parent with data-directory-id
                 const directoryContainer = newContainer.closest(".notes-directory-content__directory");
                 const newDirectoryId = directoryContainer ? directoryContainer.getAttribute("data-directory-id") : null;
-
-                // Optimistically update the UI (the DOM is already updated)
-                // Now, send an AJAX request to update the note’s order and directory on the server.
+            
                 const noteId = draggingEl.getAttribute("data-note-id");
                 updateNoteOrder(noteId, newIndex, newDirectoryId);
-
-                // Remove the placeholder
+            
                 if (placeholder.parentElement) {
                     placeholder.parentElement.removeChild(placeholder);
                 }
@@ -291,26 +309,21 @@
 
         // Toggle collapse/expand directory's notes
         function toggleCollapse(button) {
+            const collapseIcon = button.querySelector(".notes-directory-content__btn")
             const parentDiv = button.closest(".notes-directory-content__directory");
-            if (button.classList.contains('notes-directory-content__btn--collapse')){
-                button.classList.remove("notes-directory-content__btn--collapse");
-                button.classList.add("notes-directory-content__btn--open")
+            
+            if (collapseIcon.classList.contains('notes-directory-content__btn--collapse')){
+                collapseIcon.classList.remove("notes-directory-content__btn--collapse");
+                collapseIcon.classList.add("notes-directory-content__btn--open")
             } else {
-                button.classList.add("notes-directory-content__btn--collapse");
-                button.classList.remove("notes-directory-content__btn--open")
+                collapseIcon.classList.add("notes-directory-content__btn--collapse");
+                collapseIcon.classList.remove("notes-directory-content__btn--open")
             }
             if (!parentDiv) return;
             const fileList = parentDiv.querySelector(".notes-directory-content__file-list");
+            fileList.style.display = (fileList.style.display === "none") ? "" : "none";
 
-
-            if (fileList.style.maxHeight) {
-                fileList.style.maxHeight = null;
-                fileList.style.height = 'auto';
-            } else {
-                fileList.style.maxHeight = fileList.scrollHeight + 16 + "px"; // Expand
-                if (fileList.scrollHeight === 0) fileList.style.height = "16px"
-                
-            }
         }
+
     </script>
 {% endblock layout %}

@@ -169,8 +169,8 @@
   transform: rotate(180deg);
 }
 .notes-directory-content__file-list {
+  min-height: 1rem;
   list-style-type: none;
-  max-height: 0;
   overflow: hidden;
   transition: max-height 0.2s ease-out;
 }
