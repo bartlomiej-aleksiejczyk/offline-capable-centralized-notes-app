@@ -7,11 +7,13 @@
 {% block layout %}
     <!-- Main Directory Container -->
     <div class="notes-directory">
-        <note-display class="grow flex"
-                        ajaxNoteEndpoint= '{% url 'notes_api:note_detail' id=selected_note_compatible_id %}'
-                        selectednoteid='{% firstof selected_note_compatible_id null %}'
-                        initialselectednotetitle='{{ selected_note.title }}'
-                        initialselectednotecontent='{{ selected_note.content }}'
-                        csrftoken="{{ csrf_token }}"></note-display>
+        <note-display 
+        class="grow flex"
+        class="grow flex w-[100%]"
+        ajaxNoteEndpoint= '{% url 'notes_api:note_detail' id=selected_note_compatible_id %}'
+        selectednoteid='{% if selected_note_compatible_id  %}{{ selected_note_compatible_id }}{% endif %}'
+        csrftoken="{{ csrf_token }}"
+        >
+    </note-display>
     </div>
 {% endblock layout %}

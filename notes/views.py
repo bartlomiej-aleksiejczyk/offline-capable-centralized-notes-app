@@ -200,7 +200,13 @@ def note_detail(request, id):
         note = get_object_or_404(Note, id=id, user=request.user)
 
     return render(
-        request, "notes/note_detail.html", {"note": note, "selected_note": note}
+        request,
+        "notes/note_detail.html",
+        {
+            "note": note,
+            "selected_note": note,
+            "selected_note_compatible_id": id,
+        },
     )
 
 

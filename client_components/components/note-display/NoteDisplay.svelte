@@ -21,15 +21,14 @@
     selectedNote.selectedNoteId = selectedNoteId;
     selectedNote.csrfToken = csrfToken;
 
-    if (selectedNote.title === "local~note") {
+    if (selectedNoteId === "local~note") {
+      selectedNote.title = selectedNoteId;
       loadDefaultNote();
     } else {
+      document.addEventListener("visibilitychange", handleVisibilityChange);
       loadNoteContent();
+      setupInactivityTimer(loadNoteContent);
     }
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    setupInactivityTimer(loadNoteContent);
   });
 
   function handleVisibilityChange() {
