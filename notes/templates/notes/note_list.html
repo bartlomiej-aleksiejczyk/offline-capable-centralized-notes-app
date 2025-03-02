@@ -6,7 +6,8 @@
 {% block layout %}
     <div class="notes-layout">
         <!-- LEFT SIDEBAR -->
-        <div class="notes-sidebar" up-poll up-interval="60000">
+        <div id="notes-sidebar" class="notes-sidebar" up-poll>
+            
             <div class="sidebar-sticky-wrapper">
                 <div class="sidebar-button-wrapper">
                     <button onclick="promptNewNote()" class="button sidebar-button">Add New Note</button>

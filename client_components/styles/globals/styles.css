@@ -2,82 +2,82 @@
 @import "./reset.css";
 
 body {
-    margin: 0;
-    padding: 0;
-    background-color: var(--color-background);
-    color: var(--color-text-primary);
-    font-family: "Courier New", Courier, monospace;
-    line-height: 1.6;
+  margin: 0;
+  padding: 0;
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  font-family: "Courier New", Courier, monospace;
+  line-height: 1.6;
 }
 
 html,
 body {
-    min-height: 100vh;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
+  min-height: 100vh;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 main {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: row;
-    flex-grow: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: row;
+  flex-grow: 1;
 }
 
 .notes-wrapper {
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
 }
 
 .button {
-    &:hover {
-        box-shadow: inset 0 0 0 2px var(--color-primary-darker);
-    }
+  &:hover {
+    box-shadow: inset 0 0 0 2px var(--color-primary-darker);
+  }
 
-    &:active {
-        transform: translateY(2px);
-    }
+  &:active {
+    transform: translateY(2px);
+  }
 
-    &:focus {
-        outline-offset: -0.25rem;
-        outline: 1px dashed var(--color-text-on-primary);
-    }
+  &:focus {
+    outline-offset: -0.25rem;
+    outline: 1px dashed var(--color-text-on-primary);
+  }
 
-    width: 100%;
-    cursor: pointer;
-    font-family: inherit;
-    background-color: var(--color-primary-lighter);
-    color: var(--color-text-on-primary);
-    font-weight: bold;
-    font-size: large;
-    letter-spacing: 0.1em;
-    transition: all 0.3s ease;
-    border: solid 2px var(--color-primary-darker);
-    align-self: stretch;
-    padding: 0.5rem 0;
+  width: 100%;
+  cursor: pointer;
+  font-family: inherit;
+  background-color: var(--color-primary-lighter);
+  color: var(--color-text-on-primary);
+  font-weight: bold;
+  font-size: large;
+  letter-spacing: 0.1em;
+  transition: background-color 0.3s ease;
+  border: solid 2px var(--color-primary-darker);
+  align-self: stretch;
+  padding: 0.5rem 0;
 }
 
 .notes-directory {
-    display: flex;
-    flex-grow: 1;
+  display: flex;
+  flex-grow: 1;
 }
 
 .errorlist {
-    max-width: 30ch;
-    list-style-type: none;
-    background-color: var(--color-background-light-contrast);
-    padding: 0.5rem;
+  max-width: 30ch;
+  list-style-type: none;
+  background-color: var(--color-background-light-contrast);
+  padding: 0.5rem;
 }
 
 .drag-placeholder {
-    border: 2px dashed #ccc;
-    background: #f8f8f8;
-    margin: 4px 0;
+  border: 2px dashed #ccc;
+  background: #f8f8f8;
+  margin: 4px 0;
 }
 
 .notes-directory-content__file-item.dragging {
-    opacity: 0.5;
-    pointer-events: none;
+  opacity: 0.5;
+  pointer-events: none;
 }

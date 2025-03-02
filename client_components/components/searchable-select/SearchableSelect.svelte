@@ -17,13 +17,15 @@
   let highlightedIndex = $state(-1);
   let dropdownRef;
   let selectedOption = $state(undefined);
+  let maxDropdownHeight = $state("150px");
 
   function toggleDropdown() {
+    adjustDropdownHeight();
+
     isDropdownOpen = !isDropdownOpen;
+
     if (isDropdownOpen) {
-      requestAnimationFrame(() => {
-        adjustDropdownHeight();
-      });
+      // requestAnimationFrame(() => {});
       searchText = "";
       filterOptions();
       highlightedIndex = filteredOptions.findIndex(
@@ -78,12 +80,7 @@
 
     const rect = dropdownRef.getBoundingClientRect();
     const spaceBelow = window.innerHeight - rect.bottom;
-    const maxDropdownHeight = Math.min(spaceBelow - 10, 600);
-
-    const dropdownList = dropdownRef.querySelector(".dropdown-list");
-    if (dropdownList) {
-      dropdownList.style.maxHeight = `${maxDropdownHeight}px`;
-    }
+    maxDropdownHeight = `${Math.min(spaceBelow - 10, 600)}px`;
   }
 
   onMount(() => {
@@ -111,7 +108,11 @@
     />
     <div class="chevron {isDropdownOpen ? 'open' : ''}">▼</div>
     {#if isDropdownOpen}
-      <div class="dropdown-list" transition:slide>
+      <div
+        class="dropdown-list"
+        transition:slide
+        style:max-height={maxDropdownHeight}
+      >
         {#each filteredOptions as option, i}
           <div
             class="dropdown-item {i === highlightedIndex ? 'highlighted' : ''}"
@@ -166,7 +167,6 @@
     border-top: none;
     border-radius: var(--border-radius-medium);
     background: var(--color-main-text-area);
-    max-height: 150px;
     overflow-y: auto;
     z-index: 10;
   }
