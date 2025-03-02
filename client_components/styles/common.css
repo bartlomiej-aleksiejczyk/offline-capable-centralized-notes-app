@@ -48,7 +48,6 @@
 .notes-directory__sidebar {
   background-color: var(--color-background);
   padding: 1.25rem;
-  flex-grow: 1;
   width: 30%;
 }
 
@@ -56,7 +55,7 @@
   padding: 1.25rem;
   background-color: var(--color-background);
   overflow-y: auto;
-  flex-grow: 4;
+  width: 70%;
 }
 
 .notes-directory-sidebar {
