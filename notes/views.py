@@ -1,10 +1,47 @@
 # notes/views.py
 import json
+from urllib.parse import urlencode
 
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
 from django.urls import reverse
+from django.http import QueryDict
 from django.views.decorators.http import require_POST
 
+from notes.forms import NoteForm
+from .models import Note, Directory
+
 LOCAL_NOTE_NAME = "local~note"
+
+
+@login_required
+def add_note(request):
+    directory_id = request.GET.get("directory")
+    directory = None
+
+    if directory_id:
+        directory = get_object_or_404(Directory, id=directory_id)
+
+    if request.method == "POST":
+        form = NoteForm(request.POST)
+        if form.is_valid():
+            note = form.save(commit=False)
+            note.user = request.user
+            note.save()
+
+            query_dictionary = {}
+            if note.directory:
+                query_dictionary["directory"] = note.directory.id
+            query_dictionary["note"] = note.id
+            query_string = urlencode(query_dictionary)
+            request.session["selected_note_id"] = note.id
+
+            return redirect(f"{reverse('notes:note_list')}?{query_string}")
+
+    else:
+        form = NoteForm(initial={"directory": directory})  # Pre-fill directory
+
+    return render(request, "notes/add_note.html", {"form": form})
 
 
 def note_list(request):
@@ -16,10 +53,14 @@ def note_list(request):
         action = request.POST.get("action")
         if action == "create_note":
             note_title = request.POST.get("note_title", "").strip()
+            note_type = request.POST.get("note_type", "").strip()
             note_directory_id = request.POST.get("note_directory_id", "").strip()
             if note_title:
                 Note.objects.create(
-                    title=note_title, user=user, directory_id=note_directory_id
+                    title=note_title,
+                    user=user,
+                    directory_id=note_directory_id,
+                    note_type=note_type,
                 )  # Assign the note to the user
             # return redirect(
             #     "notes:note_list", kwargs={"directory": f"{note_directory_id}"}

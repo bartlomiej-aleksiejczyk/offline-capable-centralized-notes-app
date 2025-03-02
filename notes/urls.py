@@ -6,6 +6,7 @@ app_name = "notes"
 
 urlpatterns = [
     path("", views.note_list, name="note_list"),
+    path("add_note/", views.add_note, name="add_note"),
     path("directories/", views.directory_list, name="directory_list"),
     path(
         "ajax_update_note_order/",

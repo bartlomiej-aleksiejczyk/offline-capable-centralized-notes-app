@@ -316,6 +316,11 @@
   top: 0;
 }
 
+.sidebar-button {
+  text-align: center;
+  text-decoration: none;
+}
+
 .sidebar-sticky-wrapper {
   position: sticky;
   display: flex;
