@@ -1,0 +1,28 @@
+<!-- notes/rename_note.html -->
+{% extends "base.html" %}
+
+{% block content %}
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Rename</button>
+  </form>
+{% endblock %}
+
+{% extends "base_layout.html" %}
+{% load static %}
+
+{% block title %} 
+Rename Note: {{ note.title }}
+{% endblock title %}
+
+{% block page_specific_content %}
+    <div up-main class="bg-background p-6">
+        <h2>Rename Note: {{ note.title }}</h2>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Rename</button>
+          </form>
+    </div>
+{% endblock page_specific_content %}

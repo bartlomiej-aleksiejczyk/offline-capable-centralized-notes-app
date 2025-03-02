@@ -5,28 +5,51 @@ from urllib.parse import urlencode
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
-from django.http import QueryDict
+from django.http import HttpResponse, QueryDict
 from django.views.decorators.http import require_POST
-
-from notes.forms import NoteForm
+from django.contrib import messages
+from django.utils.text import slugify
+from notes.forms import NoteForm, RenameNoteForm
 from .models import Note, Directory
 
 LOCAL_NOTE_NAME = "local~note"
 
 
 @login_required
+def rename_note(request, note_id):
+    note = get_object_or_404(Note, pk=note_id, user=request.user)
+
+    if request.method == "POST":
+        form = RenameNoteForm(request.POST, instance=note)
+
+        if form.is_valid():
+            note = form.save(commit=False)
+            note.slug = slugify(note.title)
+            note.save()
+            messages.success(request, "Note has been renamed successfully.")
+            return redirect(note.get_absolute_url())
+    else:
+        form = RenameNoteForm(instance=note)
+
+    return render(request, "notes/rename_note.html", {"form": form, "note": note})
+
+
+@login_required
 def add_note(request):
+    user = request.user
     directory_id = request.GET.get("directory")
     directory = None
 
+    if directory_id == "all":
+        directory_id = None
     if directory_id:
-        directory = get_object_or_404(Directory, id=directory_id)
+        directory = get_object_or_404(Directory, id=directory_id, user=user)
 
     if request.method == "POST":
         form = NoteForm(request.POST)
         if form.is_valid():
             note = form.save(commit=False)
-            note.user = request.user
+            note.user = user
             note.save()
 
             query_dictionary = {}
@@ -36,7 +59,14 @@ def add_note(request):
             query_string = urlencode(query_dictionary)
             request.session["selected_note_id"] = note.id
 
-            return redirect(f"{reverse('notes:note_list')}?{query_string}")
+            response = HttpResponse("<p up-main> </p>")
+            response["X-Up-Events"] = json.dumps({type: "note:created", id: "bar"})
+            return response
+
+        # Return 400 Bad Request when form is invalid
+        response = render(request, "notes/add_note.html", {"form": form})
+        response.status_code = 400
+        return response
 
     else:
         form = NoteForm(initial={"directory": directory})  # Pre-fill directory
@@ -48,7 +78,7 @@ def note_list(request):
     """
     Display a list of notes for the logged-in user.
     """
-    user = request.user  # Get the logged-in user
+    user = request.user
     if request.method == "POST":
         action = request.POST.get("action")
         if action == "create_note":
@@ -61,10 +91,7 @@ def note_list(request):
                     user=user,
                     directory_id=note_directory_id,
                     note_type=note_type,
-                )  # Assign the note to the user
-            # return redirect(
-            #     "notes:note_list", kwargs={"directory": f"{note_directory_id}"}
-            # )
+                )
 
             query_dictionary = QueryDict("", mutable=True)
             if note_directory_id:
