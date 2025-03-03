@@ -59,9 +59,7 @@ def add_note(request):
             query_string = urlencode(query_dictionary)
             request.session["selected_note_id"] = note.id
 
-            response = HttpResponse("<p up-main> </p>")
-            response["X-Up-Events"] = json.dumps({type: "note:created", id: "bar"})
-            return response
+            return redirect(f"{reverse('notes:note_list')}?{query_string}")
 
         # Return 400 Bad Request when form is invalid
         response = render(request, "notes/add_note.html", {"form": form})
