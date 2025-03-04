@@ -6,10 +6,10 @@
 {% endblock title %}
 
 {% block page_specific_content %}
-    <div up-main class="bg-background p-6">
+    <div up-main class="bg-background p-6 md:min-w-150" data-popover-main-content>
         <h2>Add a New Note</h2>
 
-        <form method="POST" class="space-y-4" up-layer="swap">
+        <form  action method="POST" class="space-y-4" up-layer="swap">
             {% csrf_token %}
 
             {% if form.non_field_errors or form.errors %}
