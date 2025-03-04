@@ -48,6 +48,7 @@ export class GlobalPopover {
   async loadPopoverContent(link) {
     const url = link.getAttribute("href");
     const customSelector = link.getAttribute("data-popover-selector");
+    const cutAttribute = link.getAttribute("data-popover-cut");
 
     try {
       const response = await fetch(url);
@@ -60,6 +61,11 @@ export class GlobalPopover {
 
       if (customSelector) {
         const selected = doc.querySelector(customSelector);
+        if (selected) {
+          content = selected.outerHTML;
+        }
+      } else if (cutAttribute) {
+        const selected = doc.querySelector(cutAttribute);
         if (selected) {
           content = selected.outerHTML;
         }
@@ -86,7 +92,7 @@ export class GlobalPopover {
     } else {
       this.popover.style.display = "block";
     }
-    this.attachFormInterception();
+    this.attachFormInterception(); // Ensure forms are intercepted
   }
 
   hidePopover() {
@@ -98,52 +104,116 @@ export class GlobalPopover {
   }
 
   attachFormInterception() {
-    const form = this.popoverContent.querySelector("[data-popover-form]");
-    if (!form) return;
+    const forms = this.popoverContent.querySelectorAll("[data-popover-form]");
+    if (!forms.length) return;
 
-    form.addEventListener("submit", async (event) => {
-      event.preventDefault();
-      const formData = new FormData(form);
-      const action = form.getAttribute("action");
-      const method = form.getAttribute("method") || "POST";
+    forms.forEach((form) => {
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const formData = new FormData(form);
+        const action = form.getAttribute("action");
+        const method = form.getAttribute("method") || "POST";
+        const followRedirect = form.hasAttribute(
+          "data-popover-follow-redirect"
+        );
+        const injectSelector = form.getAttribute("data-popover-inject");
+        const responseSelector = form.getAttribute(
+          "data-popover-response-selector"
+        ); // NEW: Custom response selector
 
-      try {
-        const response = await fetch(action, {
-          method: method.toUpperCase(),
-          body: method.toUpperCase() === "GET" ? null : formData,
-          headers: {
-            "X-Requested-With": "XMLHttpRequest", // Indicate it's an AJAX request
-          },
-        });
+        try {
+          const response = await fetch(action, {
+            method: method.toUpperCase(),
+            body: method.toUpperCase() === "GET" ? null : formData,
+            headers: {
+              "X-Requested-With": "XMLHttpRequest",
+            },
+          });
 
-        // Check if the response is an HTML page or a redirect
-        const contentType = response.headers.get("Content-Type");
-        if (response.redirected) {
-          this.hidePopover();
-          window.location.href = response.url; // Follow redirect
-        } else if (contentType && contentType.includes("text/html")) {
-          const htmlText = await response.text();
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(htmlText, "text/html");
+          if (response.redirected) {
+            if (followRedirect) {
+              this.hidePopover();
+              window.location.href = response.url;
+            } else {
+              this.fetchAndInject(
+                response.url,
+                injectSelector,
+                responseSelector
+              );
+            }
+          } else if (response.ok) {
+            const htmlText = await response.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlText, "text/html");
 
-          let content = doc.body.innerHTML;
+            let content = doc.body.innerHTML;
+            if (responseSelector) {
+              const selected = doc.querySelector(responseSelector);
+              if (selected) {
+                content = selected.outerHTML;
+              }
+            } else {
+              const defaultSelector = "[data-popover-main-content]";
+              const defaultElement = doc.querySelector(defaultSelector);
+              if (defaultElement) {
+                content = defaultElement.outerHTML;
+              }
+            }
 
-          // Extract specific content if `data-popover-main-content` is found
-          const defaultSelector = "[data-popover-main-content]";
-          const defaultElement = doc.querySelector(defaultSelector);
-          if (defaultElement) {
-            content = defaultElement.outerHTML;
+            this.showPopover(content);
+            this.attachFormInterception();
+          } else {
+            // Handle non-successful responses (4xx, 5xx)
+            const errorText = await response.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(errorText, "text/html");
+            let errorContent = doc.body.innerHTML;
+            if (responseSelector) {
+              const selected = doc.querySelector(responseSelector);
+              if (selected) {
+                errorContent = selected.outerHTML;
+              }
+            }
+            this.showPopover(errorContent); // Keep popover open & show error
           }
-
-          this.showPopover(content);
-          this.attachFormInterception(); // Re-attach form handling
+        } catch (error) {
+          console.error("Error submitting form:", error);
+          this.showPopover("<p>Form submission failed.</p>");
         }
-      } catch (error) {
-        console.error("Error submitting form:", error);
-        this.showPopover("<p>Form submission failed.</p>");
-      }
+      });
     });
   }
-}
 
-document.addEventListener("DOMContentLoaded", () => new GlobalPopover());
+  async fetchAndInject(url, selector, responseSelector) {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Failed to fetch redirect content.");
+      const htmlText = await response.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(htmlText, "text/html");
+
+      let content = doc.body.innerHTML;
+      if (responseSelector) {
+        const selected = doc.querySelector(responseSelector);
+        if (selected) {
+          content = selected.outerHTML;
+        }
+      } else {
+        const defaultSelector = "[data-popover-main-content]";
+        const defaultElement = doc.querySelector(defaultSelector);
+        if (defaultElement) {
+          content = defaultElement.outerHTML;
+        }
+      }
+
+      if (selector) {
+        document.querySelector(selector).innerHTML = content;
+      } else {
+        this.showPopover(content);
+        this.attachFormInterception();
+      }
+    } catch (error) {
+      console.error("Error fetching and injecting content:", error);
+    }
+  }
+}
