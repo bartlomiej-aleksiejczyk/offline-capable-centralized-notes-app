@@ -1,4 +1,4 @@
-export class GlobalPopover {
+class GlobalPopover {
   constructor() {
     this.createPopover();
     this.attachGlobalEventListeners();
@@ -12,8 +12,8 @@ export class GlobalPopover {
             <button id="popover-close" class="absolute top-2 right-2 m-0 p-0" aria-label="Close popover">
             <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#000000"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg>
             </button>
-            <div id="popover-content"></div>
-        `;
+          <div id="popover-content"></div>
+      `;
     document.body.appendChild(this.popover);
 
     this.popoverContent = document.getElementById("popover-content");
@@ -33,6 +33,7 @@ export class GlobalPopover {
       event.preventDefault();
       this.loadPopoverContent(link);
     } else if (!this.popover.contains(event.target)) {
+      // Click outside of popover closes it (light dismiss)
       this.hidePopover();
     }
   }
@@ -46,6 +47,7 @@ export class GlobalPopover {
   async loadPopoverContent(link) {
     const url = link.getAttribute("href");
     const customSelector = link.getAttribute("data-popover-selector");
+    // If a specific extraction attribute is provided on the link, use that.
     const cutAttribute = link.getAttribute("data-popover-cut");
 
     try {
@@ -57,17 +59,15 @@ export class GlobalPopover {
 
       let content = doc.body.innerHTML; // Fallback: load entire page
 
+      // First priority: if a custom selector is specified on the link, use it.
       if (customSelector) {
         const selected = doc.querySelector(customSelector);
         if (selected) {
           content = selected.outerHTML;
         }
-      } else if (cutAttribute) {
-        const selected = doc.querySelector(cutAttribute);
-        if (selected) {
-          content = selected.outerHTML;
-        }
-      } else {
+      }
+      // Second: use the default extraction attribute from the AJAX content.
+      else {
         const defaultSelector = "[data-popover-main-content]";
         const defaultElement = doc.querySelector(defaultSelector);
         if (defaultElement) {
@@ -95,8 +95,10 @@ export class GlobalPopover {
     if (typeof this.popover.hidePopover === "function") {
       this.popover.hidePopover();
     } else {
-      console.log("apus");
       this.popover.style.display = "none";
     }
   }
 }
+
+// Initialize the global popover utility when the document is ready.
+document.addEventListener("DOMContentLoaded", () => new GlobalPopover());
