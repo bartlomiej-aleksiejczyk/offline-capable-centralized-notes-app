@@ -9,7 +9,7 @@
     <div up-main class="bg-background p-6 md:min-w-150" data-popover-main-content>
         <h2>Add a New Note</h2>
 
-        <form  action method="POST" class="space-y-4" up-layer="swap">
+        <form  action={% url 'notes:add_note' %} method="POST" class="space-y-4">
             {% csrf_token %}
 
             {% if form.non_field_errors or form.errors %}
