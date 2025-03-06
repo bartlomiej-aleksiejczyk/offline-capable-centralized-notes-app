@@ -62,7 +62,7 @@ def add_note(request):
 
             return redirect(f"{reverse('notes:note_list')}?{query_string}")
 
-        return FormErrorTemplateResponse(request, "my_template.html", {"form": form})
+        return FormErrorTemplateResponse(request, "notes/add_note.html", {"form": form})
 
     else:
         form = NoteForm(initial={"directory": directory})  # Pre-fill directory

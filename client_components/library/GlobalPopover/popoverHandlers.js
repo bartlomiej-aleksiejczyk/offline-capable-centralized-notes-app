@@ -1,4 +1,8 @@
-export function extractContent(doc, selector, fallbackSelector) {
+export function extractContent(
+  doc,
+  selector,
+  fallbackSelector = "[data-popover-main-content]"
+) {
   if (selector) {
     const selected = doc.querySelector(selector);
     if (selected) return selected.outerHTML;
@@ -43,7 +47,18 @@ export async function handleFormSubmission(event, popoverInstance) {
         }
       }
     } else {
-      await handleResponse(response, responseSelector, popoverInstance);
+      const contentType = response.headers.get("Content-Type");
+      if (!contentType || !contentType.includes("text/html")) {
+        throw new Error(`Unsupported content type: ${contentType}`);
+      }
+      const unextractedContent = await response.text();
+      const document = new DOMParser().parseFromString(
+        unextractedContent,
+        "text/html"
+      );
+      const content = extractContent(document);
+      popoverInstance.showPopover(content);
+      popoverInstance.attachFormInterception();
     }
   } catch (error) {
     console.error("Error submitting form:", error);
