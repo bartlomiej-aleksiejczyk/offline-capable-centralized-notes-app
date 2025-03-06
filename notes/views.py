@@ -9,6 +9,7 @@ from django.http import HttpResponse, QueryDict
 from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.utils.text import slugify
+from common.form_error_template_response import FormErrorTemplateResponse
 from notes.forms import NoteForm, RenameNoteForm
 from .models import Note, Directory
 
@@ -61,10 +62,7 @@ def add_note(request):
 
             return redirect(f"{reverse('notes:note_list')}?{query_string}")
 
-        # Return 400 Bad Request when form is invalid
-        response = render(request, "notes/add_note.html", {"form": form})
-        response.status_code = 400
-        return response
+        return FormErrorTemplateResponse(request, "my_template.html", {"form": form})
 
     else:
         form = NoteForm(initial={"directory": directory})  # Pre-fill directory
