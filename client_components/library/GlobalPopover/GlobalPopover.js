@@ -72,9 +72,18 @@ export class GlobalPopover {
   }
 
   showPopover(content) {
-    this.popoverContent.innerHTML = content;
+    if (!document.startViewTransition) {
+      this.popoverContent.innerHTML = content;
+    } else {
+      document.startViewTransition(
+        () => (this.popoverContent.innerHTML = content)
+      );
+    }
+
     this.popover.showPopover();
-    this.attachFormInterception();
+
+    // Ensure interception runs AFTER content is fully loaded
+    setTimeout(() => this.attachFormInterception(), 10);
   }
 
   hidePopover() {
@@ -82,12 +91,13 @@ export class GlobalPopover {
   }
 
   attachFormInterception() {
-    const forms = this.popoverContent.querySelectorAll("[data-popover-form]");
-    if (!forms.length) return;
-    forms.forEach((form) =>
-      form.addEventListener("submit", (event) =>
-        handleFormSubmission(event, this)
-      )
-    );
+    requestAnimationFrame(() => {
+      const forms = this.popoverContent.querySelectorAll("[data-popover-form]");
+      forms.forEach((form) =>
+        form.addEventListener("submit", (event) =>
+          handleFormSubmission(event, this)
+        )
+      );
+    });
   }
 }
