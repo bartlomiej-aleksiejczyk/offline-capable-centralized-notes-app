@@ -62,3 +62,5 @@
   animation: rotation 1s linear infinite;
   opacity: inherit;
 }
+
+@import "./library/GlobalPopover/global-popover.css";

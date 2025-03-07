@@ -11,6 +11,7 @@ export class GlobalPopover {
 
   createPopover() {
     this.popover = document.createElement("div");
+    this.popover.classList.add("global-popover");
     this.popover.id = "global-popover";
     this.popover.setAttribute("popover", "manual");
     this.popover.innerHTML = `
