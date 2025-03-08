@@ -12,6 +12,7 @@
         class="grow flex w-[100%]"
         ajaxNoteEndpoint= '{% url 'notes_api:note_detail' id=selected_note_compatible_id %}'
         selectednoteid='{% if selected_note_compatible_id  %}{{ selected_note_compatible_id }}{% endif %}'
+        selectednotetype='{{note.type}}'
         csrftoken="{{ csrf_token }}"
         >
     </note-display>

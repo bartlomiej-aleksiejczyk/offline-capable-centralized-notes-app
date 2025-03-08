@@ -32,6 +32,7 @@ export async function handleFormSubmission(event, popoverInstance) {
       if (followRedirect) {
         popoverInstance.hidePopover();
         window.location.href = response.url;
+        return;
       } else {
         const doc = await fetchHTMLContent(response.url);
         const content = extractContent(
@@ -62,7 +63,7 @@ export async function handleFormSubmission(event, popoverInstance) {
     }
   } catch (error) {
     console.error("Error submitting form:", error);
-    popoverInstance.showPopover("<p>Form submission failed.</p>");
+    //popoverInstance.showPopover("<p>Form submission failed.</p>");
   }
 }
 

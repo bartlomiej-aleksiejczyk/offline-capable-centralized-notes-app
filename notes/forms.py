@@ -31,7 +31,7 @@ class NoteForm(forms.ModelForm):
     def clean_title(self):
         title = self.cleaned_data.get("title")
 
-        if not re.match(r"^[A-Za-z\s\-_]+$", title):
+        if not re.match(r"^[A-Za-z0-9   \s\-_]+$", title):
             raise ValidationError(
                 "Title can only contain letters, dashes, underscores, and spaces."
             )
@@ -40,7 +40,6 @@ class NoteForm(forms.ModelForm):
             raise ValidationError(f"Title cannot be '{LOCAL_NOTE_NAME}'.")
 
         qs = Note.objects.filter(title=title)
-        print(qs)
         if self.instance.pk:
             qs = qs.exclude(pk=self.instance.pk)
         if qs.exists():
@@ -53,7 +52,6 @@ class RenameNoteForm(forms.ModelForm):
     class Meta:
         model = Note
         fields = ["title"]
-        # You can set a max_length on the widget if desired:
         widgets = {
             "title": forms.TextInput(attrs={"class": "form-element"}),
         }
@@ -61,25 +59,18 @@ class RenameNoteForm(forms.ModelForm):
     def clean_title(self):
         title = self.cleaned_data.get("title")
 
-        # Ensure title only contains letters, dashes, underscores, and spaces.
-        if not re.match(r"^[A-Za-z\s\-_]+$", title):
+        if not re.match(r"^[A-Za-z0-9   \s\-_]+$", title):
             raise ValidationError(
                 "Title can only contain letters, dashes, underscores, and spaces."
             )
 
-        # Reject the specific disallowed title.
         if title.lower() == LOCAL_NOTE_NAME:
             raise ValidationError(f"Title cannot be '{LOCAL_NOTE_NAME}'.")
 
-        # Enforce uniqueness (excluding the current note instance).
         qs = Note.objects.filter(title=title)
         if self.instance.pk:
             qs = qs.exclude(pk=self.instance.pk)
         if qs.exists():
             raise ValidationError("Note title must be unique.")
-
-        # Enforce maximum length of 250 characters.
-        if len(title) > 250:
-            raise ValidationError("Title must be 250 characters or less.")
 
         return title

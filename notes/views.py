@@ -17,8 +17,8 @@ LOCAL_NOTE_NAME = "local~note"
 
 
 @login_required
-def rename_note(request, note_id):
-    note = get_object_or_404(Note, pk=note_id, user=request.user)
+def rename_note(request, id):
+    note = get_object_or_404(Note, pk=id, user=request.user)
 
     if request.method == "POST":
         form = RenameNoteForm(request.POST, instance=note)
@@ -27,8 +27,21 @@ def rename_note(request, note_id):
             note = form.save(commit=False)
             note.slug = slugify(note.title)
             note.save()
+
+            query_dictionary = {}
+            if note.directory:
+                query_dictionary["directory"] = note.directory.id
+            selected_note_id = request.session["selected_note_id"]
+            if selected_note_id:
+                query_dictionary["note"] = selected_note_id
+
+            query_string = urlencode(query_dictionary)
+
             messages.success(request, "Note has been renamed successfully.")
-            return redirect(note.get_absolute_url())
+            return redirect(f"{reverse('notes:note_list')}?{query_string}")
+        return FormErrorTemplateResponse(
+            request, "notes/rename_note.html", {"form": form, "note": note}
+        )
     else:
         form = RenameNoteForm(instance=note)
 
@@ -60,12 +73,13 @@ def add_note(request):
             query_string = urlencode(query_dictionary)
             request.session["selected_note_id"] = note.id
 
+            messages.success(request, "Note has been created successfully.")
             return redirect(f"{reverse('notes:note_list')}?{query_string}")
 
         return FormErrorTemplateResponse(request, "notes/add_note.html", {"form": form})
 
     else:
-        form = NoteForm(initial={"directory": directory})  # Pre-fill directory
+        form = NoteForm(initial={"directory": directory})
 
     return render(request, "notes/add_note.html", {"form": form})
 
@@ -102,18 +116,14 @@ def note_list(request):
             note_id = request.POST.get("note_id")
             new_title = request.POST.get("new_title", "").strip()
             if note_id and new_title:
-                note = get_object_or_404(
-                    Note, pk=note_id, user=user
-                )  # Ensure user owns the note
+                note = get_object_or_404(Note, pk=note_id, user=user)
                 note.title = new_title
                 note.save()
 
         elif action == "delete_note":
             note_id = request.POST.get("note_id")
             if note_id:
-                note = get_object_or_404(
-                    Note, pk=note_id, user=user
-                )  # Ensure user owns the note
+                note = get_object_or_404(Note, pk=note_id, user=user)
                 note.delete()
             return redirect("notes:note_list")
 
@@ -129,21 +139,15 @@ def note_list(request):
         int(directory_id) if directory_id and directory_id.isdigit() else None
     )
 
-    directories = Directory.objects.filter(user=user).order_by(
-        "index", "title"
-    )  # Filter by user
+    directories = Directory.objects.filter(user=user).order_by("index", "title")
 
     selected_note_id = request.GET.get("note")
     if selected_note_id:
         request.session["selected_note_id"] = selected_note_id
     else:
         selected_note_id = request.session.get("selected_note_id")
-        if (
-            selected_note_id and selected_note_id != LOCAL_NOTE_NAME
-        ):  # Ensure it's not None
-            if not Note.objects.filter(
-                pk=selected_note_id
-            ).exists():  # Check if the note exists safely
+        if selected_note_id and selected_note_id != LOCAL_NOTE_NAME:
+            if not Note.objects.filter(pk=selected_note_id).exists():
                 request.session.pop("selected_note_id", None)
     if note_filter_options == "all":
         notes = Note.objects.filter(user=user).order_by("directory", "index", "title")
@@ -152,7 +156,6 @@ def note_list(request):
         notes = Note.objects.filter(user=user, directory_id=directory_id).order_by(
             "directory", "index", "title"
         )
-    # Filter notes by user and directory
 
     selected_note = None
     if selected_note_id and (selected_note_id != LOCAL_NOTE_NAME):

@@ -81,12 +81,11 @@ export class GlobalPopover {
     }
 
     this.popover.showPopover();
-
-    // Ensure interception runs AFTER content is fully loaded
-    setTimeout(() => this.attachFormInterception(), 10);
+    requestAnimationFrame(() => this.attachFormInterception());
   }
 
   hidePopover() {
+    this.popoverContent.innerHTML = "";
     this.popover.hidePopover();
   }
 
