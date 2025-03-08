@@ -21,6 +21,7 @@ export function noteStoreService() {
         } else {
           selectedNote.title = data.result.note_title;
           selectedNote.content = data.result.note_content;
+          selectedNote.type = data.result.note_type;
         }
       })
       .catch((err) => console.error("Ajax error:", err));

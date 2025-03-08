@@ -7,6 +7,7 @@
   import { selectedNote } from "./noteStore.svelte.js";
   import PlaintextNoteRenderer from "./note-renderers/PlaintextNoteRenderer.svelte";
   import UniversalRendererWrapper from "./note-renderers/UniversalRendererWrapper.svelte";
+  import TodoNoteRenderer from "./note-renderers/TodoNoteRenderer.svelte";
 
   let { ajaxNoteEndpoint, selectedNoteId, csrfToken = "" } = $props();
 
@@ -23,6 +24,7 @@
 
     if (selectedNoteId === "local~note") {
       selectedNote.title = selectedNoteId;
+      selectedNote.type = "PLAINTEXT";
       loadDefaultNote();
     } else {
       document.addEventListener("visibilitychange", handleVisibilityChange);
@@ -39,5 +41,11 @@
 </script>
 
 <UniversalRendererWrapper>
-  <PlaintextNoteRenderer />
+  {#if selectedNote.type === "PLAINTEXT"}
+    <PlaintextNoteRenderer />
+  {:else if selectedNote.type === "MARKDOWN"}
+    <div></div>
+  {:else if selectedNote.type === "TODO"}
+    <TodoNoteRenderer />
+  {/if}
 </UniversalRendererWrapper>
