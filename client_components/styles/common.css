@@ -49,6 +49,9 @@
   background-color: var(--color-background);
   padding: 1.25rem;
   width: 30%;
+  @media (max-width: 768px) {
+    width: auto;
+  }
 }
 
 .notes-directory__content {
@@ -56,6 +59,9 @@
   background-color: var(--color-background);
   overflow-y: auto;
   width: 70%;
+  @media (max-width: 768px) {
+    width: auto;
+  }
 }
 
 .notes-directory-sidebar {
@@ -117,8 +123,11 @@
 
 .notes-directory-content {
   padding: 0 1rem 1rem 1rem;
+  @media (max-width: 768px) {
+    padding: 0;
+  }
 }
-
+/*  */
 .notes-directory-content__title {
   font-size: 1.25rem;
   margin-bottom: 1.25rem;
