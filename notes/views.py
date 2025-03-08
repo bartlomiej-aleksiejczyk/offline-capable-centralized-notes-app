@@ -191,21 +191,21 @@ def notes_detail_ajax(request, id):
 
         new_content = json_data["content"]
 
-        note = get_object_or_404(
-            Note, pk=id, user=request.user
-        )  # Ensure user owns the note
+        note = get_object_or_404(Note, pk=id, user=request.user)
         note.content = new_content
         note.save()
         return JsonResponse({"status": "ok", "result": {"note_id": id}})
 
     elif request.method == "GET":
-        note = get_object_or_404(
-            Note, pk=id, user=request.user
-        )  # Ensure user owns the note
+        note = get_object_or_404(Note, pk=id, user=request.user)
         return JsonResponse(
             {
                 "status": "ok",
-                "result": {"note_content": note.content, "note_title": note.title},
+                "result": {
+                    "note_content": note.content,
+                    "note_title": note.title,
+                    "note_type": note.type,
+                },
             }
         )
 
