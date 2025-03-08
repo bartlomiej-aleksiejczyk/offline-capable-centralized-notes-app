@@ -1,7 +1,7 @@
 let inactivityTimeout;
 
 export function setupInactivityTimer(loadNoteContent) {
-  resetInactivityTimer();
+  resetInactivityTimer(loadNoteContent);
   ["mousemove", "keydown", "scroll", "click", "touchstart"].forEach((event) => {
     document.addEventListener(event, () =>
       resetInactivityTimer(loadNoteContent)
