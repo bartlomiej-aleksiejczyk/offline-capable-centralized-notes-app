@@ -1,39 +1,43 @@
 /**
- * MobileDragAndDrop - A headless drag-and-drop library for mobile and desktop.
+ * MobileDragAndDrop - A headless drag-and-drop library supporting multiple containers and Shadow DOM.
  *
- * This class provides a clean API for drag-and-drop operations without modifying the DOM.
- * It emits events (`onDragStart`, `onDragMove`, `onDragEnd`) that allow developers to
- * implement custom behaviors like element repositioning or UI updates.
+ * Features:
+ * - Allows specifying multiple containers in different ShadowRoots.
+ * - Supports mobile (`touch`) and desktop (`pointer`) events.
+ * - Detects hovered elements with `data-dragitem` and `data-dragitem-index`.
+ * - Supports drag-and-drop within multiple Web Components.
+ * - Auto-scrolls when dragging near screen edges.
  *
- * New Features:
- * - Detects **hovered element** while dragging (`data-dragitem`)
- * - Retrieves the **hovered element's index** (`data-dragitem-index`)
- * - Fully supports **mobile (`touch`) and desktop (`pointer`) events**
- * - **Auto-scrolling** when dragging near screen edges
- *
- * Example Usage (Vanilla JS):
+ * Example Usage (Web Component):
  * ----------------------------
- * const dnd = new MobileDragAndDrop();
- *
- * dnd.onDragStart = ({ element }) => console.log("Drag started:", element);
- * dnd.onDragMove = ({ element, x, y, hoverElement, hoverIndex }) => {
- *   console.log(`Dragging ${element} to ${x}, ${y}`);
- *   if (hoverElement) {
- *      console.log(`Hovering over ${hoverElement} with index ${hoverIndex}`);
+ * class MyComponent extends HTMLElement {
+ *   constructor() {
+ *     super();
+ *     this.attachShadow({ mode: "open" });
+ *     this.shadowRoot.innerHTML = `
+ *       <div id="container">
+ *         <div class="draggable" data-dragitem-index="1">Item 1</div>
+ *         <div class="draggable" data-dragitem-index="2">Item 2</div>
+ *       </div>
+ *     `;
  *   }
- * };
- * dnd.onDragEnd = ({ element, finalX, finalY }) => console.log("Drag ended:", element, finalX, finalY);
  *
- * const items = document.querySelectorAll(".draggable");
- * MobileDragAndDrop.enable(items, dnd);
+ *   connectedCallback() {
+ *     const dnd = new MobileDragAndDrop([this.shadowRoot.querySelector("#container")], this.shadowRoot);
+ *     MobileDragAndDrop.enable(".draggable", dnd);
+ *   }
+ * }
+ * customElements.define("my-component", MyComponent);
  */
 
 class MobileDragAndDrop {
-  constructor() {
+  constructor(containers = [], root = document) {
     this.draggingEl = null;
     this.offsetX = 0;
     this.offsetY = 0;
     this.scrollInterval = null;
+    this.root = root;
+    this.containers = containers.filter(Boolean);
 
     // Event hooks (set externally)
     this.onDragStart = null;
@@ -42,11 +46,12 @@ class MobileDragAndDrop {
   }
 
   /**
-   * Enables drag-and-drop on a list of elements.
-   * @param {NodeList} draggableItems - Elements that should be draggable.
+   * Enables drag-and-drop on specified elements inside the given root.
+   * @param {string} selector - CSS selector for draggable elements.
    * @param {MobileDragAndDrop} instance - An instance of MobileDragAndDrop.
    */
-  static enable(draggableItems, instance) {
+  static enable(selector, instance) {
+    const draggableItems = instance.root.querySelectorAll(selector);
     draggableItems.forEach((item) => {
       item.style.touchAction = "none"; // Prevent default gestures
       item.addEventListener("pointerdown", (e) =>
@@ -109,18 +114,24 @@ class MobileDragAndDrop {
     let clientX = e.clientX ?? (e.touches ? e.touches[0].clientX : 0);
     let clientY = e.clientY ?? (e.touches ? e.touches[0].clientY : 0);
 
-    // Check what element is being hovered over
-    this.draggingEl.hidden = true; // Temporarily hide to get the real element below
-    let hoveredElement = document.elementFromPoint(clientX, clientY);
-    this.draggingEl.hidden = false;
+    // Get the correct shadow root or document for element detection
+    let container = this.containers.find((cont) =>
+      cont.contains(this.getElementFromPoint(clientX, clientY))
+    );
 
     let hoverElement = null;
     let hoverIndex = null;
 
-    if (hoveredElement) {
-      hoverElement = hoveredElement.closest("[data-dragitem]");
-      if (hoverElement) {
-        hoverIndex = hoverElement.getAttribute("data-dragitem-index");
+    if (container) {
+      this.draggingEl.hidden = true;
+      let hoveredElement = this.getElementFromPoint(clientX, clientY);
+      this.draggingEl.hidden = false;
+
+      if (hoveredElement) {
+        hoverElement = hoveredElement.closest("[data-dragitem]");
+        if (hoverElement) {
+          hoverIndex = hoverElement.getAttribute("data-dragitem-index");
+        }
       }
     }
 
@@ -132,6 +143,7 @@ class MobileDragAndDrop {
         y: clientY - this.offsetY,
         hoverElement: hoverElement,
         hoverIndex: hoverIndex,
+        container: container, // The container the item is currently in
       });
     }
 
@@ -200,5 +212,19 @@ class MobileDragAndDrop {
       );
       this.scrollInterval = setInterval(() => window.scrollBy(0, speed), 20);
     }
+  }
+
+  /**
+   * Returns the element under the given coordinates, even inside Shadow DOM.
+   * @param {number} x - X coordinate.
+   * @param {number} y - Y coordinate.
+   * @returns {HTMLElement|null} - The hovered element.
+   */
+  getElementFromPoint(x, y) {
+    let el = document.elementFromPoint(x, y);
+    if (el && el.shadowRoot) {
+      return el.shadowRoot.elementFromPoint(x, y) || el;
+    }
+    return el;
   }
 }
