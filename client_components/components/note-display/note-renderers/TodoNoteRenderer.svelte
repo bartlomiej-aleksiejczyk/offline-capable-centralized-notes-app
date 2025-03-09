@@ -1,7 +1,7 @@
 <script>
   import { noteStoreService } from "../services/noteStoreService.svelte.js";
   import { selectedNote } from "../noteStore.svelte.js";
-
+  // TODO: ADD TOOLTIPS FOR MOBILE AND DESKTOP
   const { saveNoteContent } = noteStoreService();
 
   let debounceTimer = null;
