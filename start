@@ -1,0 +1,31 @@
+#!/bin/bash
+
+PORT=8000
+
+echo "Pulling latest changes from Git..."
+git pull
+
+echo "Checking if port $PORT is in use..."
+if lsof -i :$PORT | grep LISTEN; then
+    echo "Port $PORT is in use. Killing the process..."
+    fuser -k $PORT/tcp
+fi
+
+echo "Starting Django development server with Python 3.12..."
+python3.12 manage.py runserver &
+
+DJANGO_PID=$!
+
+sleep 3
+
+if ! kill -0 $DJANGO_PID 2>/dev/null; then
+    echo "Python 3.12 failed, falling back to Python 3..."
+    python3 manage.py runserver &
+else
+    echo "Django server running with Python 3.12."
+fi
+
+echo "Starting frontend development server..."
+npm run dev
+
+wait
