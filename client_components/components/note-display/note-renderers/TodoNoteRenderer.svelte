@@ -3,10 +3,15 @@
   import { selectedNote } from "../noteStore.svelte.js";
 
   const { saveNoteContent } = noteStoreService();
-
+  // TODO:
+  // - text decoration after done
+  // - placeholder for drag and drop
+  // - center icons use better icons and make input box bigger
+  // - better add task button
   let debounceTimer = null;
 
   function debounceSave() {
+    selectedNote.content = serializeTodos(todos);
     selectedNote.isSaving = true;
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(saveNoteContent, 1000);
@@ -29,32 +34,109 @@
   $inspect(todos);
 
   function toggleTodo(index) {
-    selectedNote.content = serializeTodos(todos);
     debounceSave();
   }
 
-  function addTodo() {
-    todos.push({ text: "", done: false });
-    selectedNote.content = serializeTodos(todos);
+  function addTodo(index) {
+    todos.splice(index + 1, 0, { text: "", done: false });
     debounceSave();
+    setTimeout(() => {
+      console.log(
+        document
+          .querySelector("note-display")
+          .shadowRoot.querySelector(`.todo-text[data-index="${index + 1}"]`)
+      );
+      document
+        .querySelector("note-display")
+        .shadowRoot.querySelector(`.todo-text[data-index="${index + 1}"]`)
+        .focus();
+    }, 50);
   }
 
   function updateText(index, event) {
-    selectedNote.content = serializeTodos(todos);
+    todos[index].text = event.target.value;
     debounceSave();
   }
 
   function handleKeydown(index, event) {
     if (event.key === "Enter") {
       event.preventDefault();
-      addTodo();
+      addTodo(index);
     }
+  }
+
+  function removeTodo(index) {
+    if (todos.length > 1) {
+      todos.splice(index, 1);
+      debounceSave();
+    }
+  }
+
+  // Drag-and-Drop Handling
+  let draggedIndex = null;
+
+  function handleDragStart(event, index) {
+    draggedIndex = index;
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", index);
+    event.target.classList.add("dragging");
+  }
+
+  function handleDragOver(event, index) {
+    event.preventDefault();
+    const draggingElement = document
+      .querySelector("note-display")
+      .shadowRoot.querySelector(".dragging");
+
+    if (draggingElement && index !== draggedIndex) {
+      todos.splice(index, 0, todos.splice(draggedIndex, 1)[0]);
+      draggedIndex = index;
+      debounceSave();
+    }
+  }
+
+  function handleDragEnd(event) {
+    event.target.classList.remove("dragging");
+  }
+
+  function handleTouchStart(event, index) {
+    draggedIndex = index;
+    event.target.classList.add("dragging");
+  }
+
+  function handleTouchMove(event) {
+    event.preventDefault();
+    const touch = event.touches[0];
+    const element = document.elementFromPoint(touch.clientX, touch.clientY);
+    if (element && element.dataset.index) {
+      const newIndex = Number(element.dataset.index);
+      if (newIndex !== draggedIndex) {
+        todos.splice(newIndex, 0, todos.splice(draggedIndex, 1)[0]);
+        draggedIndex = newIndex;
+        debounceSave();
+      }
+    }
+  }
+
+  function handleTouchEnd(event) {
+    event.target.classList.remove("dragging");
   }
 </script>
 
 <div class="todo-list">
   {#each todos as todo, index}
-    <div class="todo-item">
+    <div
+      class="todo-item"
+      draggable="true"
+      ondragstart={(e) => handleDragStart(e, index)}
+      ondragover={(e) => handleDragOver(e, index)}
+      ondragend={handleDragEnd}
+      ontouchstart={(e) => handleTouchStart(e, index)}
+      ontouchmove={handleTouchMove}
+      ontouchend={handleTouchEnd}
+      data-index={index}
+    >
+      <span class="drag-handle">☰</span>
       <input
         type="checkbox"
         bind:checked={todo.done}
@@ -67,10 +149,14 @@
         oninput={(e) => updateText(index, e)}
         onkeydown={(e) => handleKeydown(index, e)}
         placeholder="New task..."
+        data-index={index}
       />
+      <button class="delete-todo" onclick={() => removeTodo(index)}>✕</button>
     </div>
   {/each}
-  <button class="add-todo" onclick={addTodo}>+ Add Task</button>
+  <button class="add-todo" onclick={() => addTodo(todos.length - 1)}
+    >+ Add Task</button
+  >
 </div>
 
 <style>
@@ -85,6 +171,22 @@
     display: flex;
     align-items: center;
     margin-bottom: 0.5rem;
+    padding: 0.5rem;
+    background: var(--color-background-light-contrast);
+    border-radius: 5px;
+    cursor: grab;
+    transition: background 0.2s;
+  }
+
+  .todo-item.dragging {
+    opacity: 0.5;
+  }
+
+  .drag-handle {
+    cursor: grab;
+    padding: 0.5rem;
+    font-size: 1.2rem;
+    color: var(--color-text-secondary);
   }
 
   .todo-text {
@@ -101,10 +203,23 @@
     outline: 1px solid var(--color-accent);
   }
 
+  .delete-todo {
+    background: var(--color-negative);
+    color: white;
+    border: none;
+    padding: 0.3rem 0.6rem;
+    margin-left: 0.5rem;
+    cursor: pointer;
+    font-size: 1rem;
+  }
+
+  .delete-todo:hover {
+    background: var(--color-negative-darker);
+  }
+
   .add-todo {
     margin-top: 0.5rem;
     padding: 0.5rem;
-
     border: none;
     cursor: pointer;
   }
