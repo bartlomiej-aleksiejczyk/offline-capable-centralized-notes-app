@@ -3,11 +3,7 @@
   import { selectedNote } from "../noteStore.svelte.js";
 
   const { saveNoteContent } = noteStoreService();
-  // TODO:
-  // - text decoration after done
-  // - placeholder for drag and drop
-  // - center icons use better icons and make input box bigger
-  // - better add task button
+
   let debounceTimer = null;
 
   function debounceSave() {
@@ -41,11 +37,6 @@
     todos.splice(index + 1, 0, { text: "", done: false });
     debounceSave();
     setTimeout(() => {
-      console.log(
-        document
-          .querySelector("note-display")
-          .shadowRoot.querySelector(`.todo-text[data-index="${index + 1}"]`)
-      );
       document
         .querySelector("note-display")
         .shadowRoot.querySelector(`.todo-text[data-index="${index + 1}"]`)
@@ -72,8 +63,7 @@
     }
   }
 
-  // Drag-and-Drop Handling
-  let draggedIndex = null;
+  let draggedIndex = $state();
 
   function handleDragStart(event, index) {
     draggedIndex = index;
@@ -96,6 +86,7 @@
   }
 
   function handleDragEnd(event) {
+    draggedIndex = null;
     event.target.classList.remove("dragging");
   }
 
@@ -135,6 +126,7 @@
       ontouchmove={handleTouchMove}
       ontouchend={handleTouchEnd}
       data-index={index}
+      class:dragged={index === draggedIndex}
     >
       <span class="drag-handle">☰</span>
       <input
@@ -150,6 +142,7 @@
         onkeydown={(e) => handleKeydown(index, e)}
         placeholder="New task..."
         data-index={index}
+        class:completed={todo.done}
       />
       <button class="delete-todo" onclick={() => removeTodo(index)}>✕</button>
     </div>
@@ -175,7 +168,8 @@
     background: var(--color-background-light-contrast);
     border-radius: 5px;
     cursor: grab;
-    transition: background 0.2s;
+    outline: 0px dashed #ccc;
+    transition: background-color 1s ease-out;
   }
 
   .todo-item.dragging {
@@ -203,6 +197,11 @@
     outline: 1px solid var(--color-accent);
   }
 
+  .todo-text.completed {
+    text-decoration: line-through;
+    color: var(--color-text-secondary);
+  }
+
   .delete-todo {
     background: var(--color-negative);
     color: white;
@@ -226,5 +225,10 @@
 
   .add-todo:hover {
     background: var(--color-accent-hover);
+  }
+  .dragged {
+    outline: 2px dashed #ccc;
+    background: #f8f8f8;
+    margin: 4px 0;
   }
 </style>
