@@ -27,10 +27,10 @@ export async function handleFormSubmission(event, popoverInstance) {
       body: method.toUpperCase() === "GET" ? null : formData,
       headers: { "X-Requested-With": "XMLHttpRequest" },
     });
-
     if (response.redirected) {
       if (followRedirect) {
         popoverInstance.hidePopover();
+        popoverInstance.deattachPopover();
         window.location.href = response.url;
         return;
       } else {
@@ -63,7 +63,7 @@ export async function handleFormSubmission(event, popoverInstance) {
     }
   } catch (error) {
     console.error("Error submitting form:", error);
-    //popoverInstance.showPopover("<p>Form submission failed.</p>");
+    popoverInstance.showPopover("<p>Form submission failed.</p>");
   }
 }
 

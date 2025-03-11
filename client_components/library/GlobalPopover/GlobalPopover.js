@@ -3,6 +3,7 @@ import {
   extractContent,
   handleFormSubmission,
 } from "./popoverHandlers";
+
 export class GlobalPopover {
   constructor() {
     this.createPopover();
@@ -27,12 +28,15 @@ export class GlobalPopover {
     this.popoverContent = document.getElementById("popover-content");
     this.popoverClose = document.getElementById("popover-close");
 
-    this.popoverClose.addEventListener("click", () => this.hidePopover());
+    this.handlePopoverClose = () => this.hidePopover();
+    this.popoverClose.addEventListener("click", this.handlePopoverClose);
   }
 
   attachGlobalEventListeners() {
-    document.addEventListener("click", (event) => this.handleClick(event));
-    document.addEventListener("keydown", (event) => this.handleKeydown(event));
+    this.handleDocumentClick = (event) => this.handleClick(event);
+    this.handleDocumentKeydown = (event) => this.handleKeydown(event);
+    document.addEventListener("click", this.handleDocumentClick);
+    document.addEventListener("keydown", this.handleDocumentKeydown);
   }
 
   handleClick(event) {
@@ -98,5 +102,28 @@ export class GlobalPopover {
         )
       );
     });
+  }
+
+  deattachPopover() {
+    if (this.popoverClose && this.handlePopoverClose) {
+      this.popoverClose.removeEventListener("click", this.handlePopoverClose);
+    }
+
+    if (this.handleDocumentClick) {
+      document.removeEventListener("click", this.handleDocumentClick);
+    }
+    if (this.handleDocumentKeydown) {
+      document.removeEventListener("keydown", this.handleDocumentKeydown);
+    }
+
+    const forms = this.popoverContent.querySelectorAll("[data-popover-form]");
+    forms.forEach((form) => {
+      const newForm = form.cloneNode(true);
+      form.parentNode.replaceChild(newForm, form);
+    });
+
+    if (this.popover && this.popover.parentNode) {
+      this.popover.parentNode.removeChild(this.popover);
+    }
   }
 }
