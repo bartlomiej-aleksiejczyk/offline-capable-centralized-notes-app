@@ -1,7 +1,6 @@
 from django.conf import settings  # Import settings to use AUTH_USER_MODEL
 from django.db import models
 from django.urls import reverse
-from django.utils.text import slugify
 
 
 class Directory(models.Model):
@@ -33,7 +32,6 @@ class Note(models.Model):
     }
 
     title = models.CharField(max_length=255)
-    slug = models.SlugField(max_length=255, unique=True)
     content = models.TextField()
     index = models.PositiveIntegerField(default=0)
     created = models.DateTimeField(auto_now_add=True)
@@ -52,14 +50,5 @@ class Note(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="notes"
     )
 
-    def save(self, *args, **kwargs):
-        # Automatically generate slug from title if not provided
-        if not self.slug:
-            self.slug = slugify(self.title)
-        super().save(*args, **kwargs)
-
     def __str__(self):
         return self.title
-
-    def get_absolute_url(self):
-        return reverse("notes:note_detail", kwargs={"slug": self.slug})

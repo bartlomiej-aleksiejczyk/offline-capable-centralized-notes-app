@@ -15,6 +15,5 @@ NON_IMPORTANT
 # TODO: use htmx/jquery/own solution for better user interactivity, remove full page reload
 # TODO: fix note ordering problem in directory view
 # TODO: Add drag and drop note list sorting
-# TODO: fix slug/id split
 # TODO: add searchable dropdown
 # TODO: signed in user info, logout button elsewhere
