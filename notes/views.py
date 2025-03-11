@@ -5,10 +5,9 @@ from urllib.parse import urlencode
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
-from django.http import HttpResponse, QueryDict
+from django.http import QueryDict
 from django.views.decorators.http import require_POST
 from django.contrib import messages
-from django.utils.text import slugify
 from common.form_error_template_response import FormErrorTemplateResponse
 from notes.forms import NoteForm, RenameNoteForm
 from .models import Note, Directory
@@ -25,7 +24,6 @@ def rename_note(request, id):
 
         if form.is_valid():
             note = form.save(commit=False)
-            note.slug = slugify(note.title)
             note.save()
 
             query_dictionary = {}
