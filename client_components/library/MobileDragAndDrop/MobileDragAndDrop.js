@@ -1,72 +1,126 @@
 /**
- * MobileDragAndDrop - A headless drag-and-drop library supporting multiple containers and Shadow DOM.
+ * MobileDragAndDrop - A headless drag-and-drop library supporting multiple containers,
+ * Shadow DOM, and both attribute-based and selector-based element specification.
  *
- * Features:
- * - Allows specifying multiple containers in different ShadowRoots.
- * - Supports mobile (`touch`) and desktop (`pointer`) events.
- * - Detects hovered elements with `data-dragitem` and `data-dragitem-index`.
- * - Supports drag-and-drop within multiple Web Components.
- * - Auto-scrolls when dragging near screen edges.
+ * Configuration Options:
+ * - containers: Array of container elements. If not provided, elements matching containerSelector are used.
+ * - containerSelector: CSS selector for containers (default: "[data-drag-container]").
+ * - draggableSelector: CSS selector for draggable elements (default: "[data-draggable]").
+ * - handleSelector: CSS selector for drag handles (default: "[data-drag-handle]"). When specified,
+ *   a drag will only start if the event originates from an element matching this selector.
+ * - root: The root element to search in (document or a shadowRoot).
  *
  * Example Usage (Web Component):
- * ----------------------------
+ * ------------------------------
+ * // In your web component's template:
+ * // <div data-drag-container>
+ * //   <div data-draggable data-dragitem-index="1">Item 1</div>
+ * //   <div data-draggable data-dragitem-index="2">Item 2</div>
+ * // </div>
+ *
  * class MyComponent extends HTMLElement {
  *   constructor() {
  *     super();
  *     this.attachShadow({ mode: "open" });
  *     this.shadowRoot.innerHTML = `
- *       <div id="container">
- *         <div class="draggable" data-dragitem-index="1">Item 1</div>
- *         <div class="draggable" data-dragitem-index="2">Item 2</div>
+ *       <style>...styles</style>
+ *       <div data-drag-container>
+ *         <div data-draggable data-dragitem-index="1">Item 1</div>
+ *         <div data-draggable data-dragitem-index="2">Item 2</div>
  *       </div>
  *     `;
  *   }
  *
  *   connectedCallback() {
- *     const dnd = new MobileDragAndDrop([this.shadowRoot.querySelector("#container")], this.shadowRoot);
- *     MobileDragAndDrop.enable(".draggable", dnd);
+ *     // Create an instance using the shadowRoot as the root.
+ *     this.dnd = new MobileDragAndDrop({ root: this.shadowRoot });
+ *     // Enable draggables – you can pass an optional selector override if desired.
+ *     MobileDragAndDrop.enable(null, this.dnd);
+ *
+ *     // Optionally, set up callbacks:
+ *     this.dnd.onDragStart = (info) => console.log("Drag started", info);
+ *     this.dnd.onDragMove = (info) => console.log("Dragging...", info);
+ *     this.dnd.onDragEnd = (info) => console.log("Drag ended", info);
  *   }
  * }
  * customElements.define("my-component", MyComponent);
  */
-
 class MobileDragAndDrop {
-  constructor(containers = [], root = document) {
+  /**
+   * @param {Object} config - Configuration object.
+   * @param {HTMLElement[]} [config.containers] - Array of container elements.
+   * @param {string} [config.containerSelector="[data-drag-container]"] - CSS selector for containers.
+   * @param {string} [config.draggableSelector="[data-draggable]"] - CSS selector for draggable elements.
+   * @param {string} [config.handleSelector="[data-drag-handle]"] - CSS selector for drag handles.
+   * @param {HTMLElement|Document} [config.root=document] - The root element (document or shadowRoot).
+   */
+  constructor(config = {}) {
+    // Set default selectors if not provided.
+    this.config = Object.assign(
+      {
+        containerSelector: "[data-drag-container]",
+        draggableSelector: "[data-draggable]",
+        handleSelector: "[data-drag-handle]",
+        root: document,
+        containers: null,
+      },
+      config
+    );
+
+    this.root = this.config.root;
+    this.containers =
+      this.config.containers ||
+      Array.from(this.root.querySelectorAll(this.config.containerSelector));
+
     this.draggingEl = null;
     this.offsetX = 0;
     this.offsetY = 0;
     this.scrollInterval = null;
-    this.root = root;
-    this.containers = containers.filter(Boolean);
 
-    // Event hooks (set externally)
+    // External event hooks
     this.onDragStart = null;
     this.onDragMove = null;
     this.onDragEnd = null;
+
+    // Bind event handlers once to allow proper removal.
+    this.pointerMoveHandler = this.pointerMoveHandler.bind(this);
+    this.pointerUpHandler = this.pointerUpHandler.bind(this);
   }
 
   /**
-   * Enables drag-and-drop on specified elements inside the given root.
-   * @param {string} selector - CSS selector for draggable elements.
+   * Attaches draggable behavior to elements.
+   * You can specify a CSS selector override or rely on the default attribute-based selector.
+   * @param {string|null} [selector] - Optional CSS selector for draggable elements.
    * @param {MobileDragAndDrop} instance - An instance of MobileDragAndDrop.
    */
   static enable(selector, instance) {
-    const draggableItems = instance.root.querySelectorAll(selector);
+    const configSelector = selector || instance.config.draggableSelector;
+    const draggableItems = instance.root.querySelectorAll(configSelector);
     draggableItems.forEach((item) => {
-      item.style.touchAction = "none"; // Prevent default gestures
-      item.addEventListener("pointerdown", (e) =>
-        instance.pointerDownHandler(e, item)
-      );
-      item.addEventListener("touchstart", (e) =>
-        instance.pointerDownHandler(e, item)
-      );
+      // Prevent default browser gestures.
+      item.style.touchAction = "none";
+
+      const pointerDownCallback = (e) => {
+        // If a drag handle is defined, ensure the event originated from it.
+        if (instance.config.handleSelector) {
+          if (!e.target.closest(instance.config.handleSelector)) {
+            return;
+          }
+        }
+        instance.pointerDownHandler(e, item);
+      };
+
+      item.addEventListener("pointerdown", pointerDownCallback);
+      item.addEventListener("touchstart", pointerDownCallback, {
+        passive: false,
+      });
     });
   }
 
   /**
    * Handles the start of a drag event.
    * @param {Event} e - The event object.
-   * @param {HTMLElement} item - The item being dragged.
+   * @param {HTMLElement} item - The element being dragged.
    */
   pointerDownHandler(e, item) {
     if (e.touches && e.touches.length > 1) return; // Ignore multi-touch
@@ -74,27 +128,24 @@ class MobileDragAndDrop {
     this.draggingEl = item;
     const rect = item.getBoundingClientRect();
 
-    // Normalize touch and pointer events
-    let clientX = e.clientX ?? e.touches[0].clientX;
-    let clientY = e.clientY ?? e.touches[0].clientY;
+    // Normalize pointer and touch events.
+    const clientX = e.clientX ?? e.touches[0].clientX;
+    const clientY = e.clientY ?? e.touches[0].clientY;
 
+    // Calculate offset so that the dragged element's position remains relative.
     this.offsetX = clientX - rect.left;
     this.offsetY = clientY - rect.top;
 
-    document.addEventListener(
-      "pointermove",
-      this.pointerMoveHandler.bind(this)
-    );
-    document.addEventListener("pointerup", this.pointerUpHandler.bind(this));
-
-    document.addEventListener("touchmove", this.pointerMoveHandler.bind(this), {
+    // Attach move and up/end handlers.
+    document.addEventListener("pointermove", this.pointerMoveHandler);
+    document.addEventListener("pointerup", this.pointerUpHandler);
+    document.addEventListener("touchmove", this.pointerMoveHandler, {
       passive: false,
     });
-    document.addEventListener("touchend", this.pointerUpHandler.bind(this));
+    document.addEventListener("touchend", this.pointerUpHandler);
 
     e.preventDefault();
 
-    // Trigger drag start event
     if (this.onDragStart) {
       this.onDragStart({
         element: this.draggingEl,
@@ -105,37 +156,31 @@ class MobileDragAndDrop {
   }
 
   /**
-   * Handles the movement of a dragged element.
+   * Handles the movement of the dragged element.
+   * Instead of comparing pixel positions directly to define drop zones,
+   * it uses attribute-based selectors to determine the hovered container and draggable.
    * @param {Event} e - The event object.
    */
   pointerMoveHandler(e) {
     if (!this.draggingEl) return;
 
-    let clientX = e.clientX ?? (e.touches ? e.touches[0].clientX : 0);
-    let clientY = e.clientY ?? (e.touches ? e.touches[0].clientY : 0);
+    const clientX = e.clientX ?? (e.touches ? e.touches[0].clientX : 0);
+    const clientY = e.clientY ?? (e.touches ? e.touches[0].clientY : 0);
 
-    // Get the correct shadow root or document for element detection
-    let container = this.containers.find((cont) =>
-      cont.contains(this.getElementFromPoint(clientX, clientY))
-    );
-
-    let hoverElement = null;
-    let hoverIndex = null;
-
-    if (container) {
-      this.draggingEl.hidden = true;
-      let hoveredElement = this.getElementFromPoint(clientX, clientY);
-      this.draggingEl.hidden = false;
-
-      if (hoveredElement) {
-        hoverElement = hoveredElement.closest("[data-dragitem]");
-        if (hoverElement) {
-          hoverIndex = hoverElement.getAttribute("data-dragitem-index");
-        }
-      }
+    // Instead of relying solely on pixel coordinates,
+    // determine the container via the event target’s closest matching container.
+    const targetElement = e.target;
+    let container = targetElement.closest(this.config.containerSelector);
+    if (!container && this.containers.length) {
+      container = this.containers.find((cont) => cont.contains(targetElement));
     }
 
-    // Trigger drag move event
+    // Determine the hovered draggable element (if any) using the configured selector.
+    const hoverElement = targetElement.closest(this.config.draggableSelector);
+    const hoverIndex = hoverElement
+      ? hoverElement.getAttribute("data-dragitem-index")
+      : null;
+
     if (this.onDragMove) {
       this.onDragMove({
         element: this.draggingEl,
@@ -143,7 +188,7 @@ class MobileDragAndDrop {
         y: clientY - this.offsetY,
         hoverElement: hoverElement,
         hoverIndex: hoverIndex,
-        container: container, // The container the item is currently in
+        container: container,
       });
     }
 
@@ -151,27 +196,20 @@ class MobileDragAndDrop {
   }
 
   /**
-   * Handles the end of a drag event.
+   * Handles the end of the drag event.
    * @param {Event} e - The event object.
    */
   pointerUpHandler(e) {
-    document.removeEventListener(
-      "pointermove",
-      this.pointerMoveHandler.bind(this)
-    );
-    document.removeEventListener("pointerup", this.pointerUpHandler.bind(this));
-
-    document.removeEventListener(
-      "touchmove",
-      this.pointerMoveHandler.bind(this)
-    );
-    document.removeEventListener("touchend", this.pointerUpHandler.bind(this));
+    document.removeEventListener("pointermove", this.pointerMoveHandler);
+    document.removeEventListener("pointerup", this.pointerUpHandler);
+    document.removeEventListener("touchmove", this.pointerMoveHandler);
+    document.removeEventListener("touchend", this.pointerUpHandler);
 
     clearInterval(this.scrollInterval);
 
-    let finalX =
+    const finalX =
       e.clientX ?? (e.changedTouches ? e.changedTouches[0].clientX : 0);
-    let finalY =
+    const finalY =
       e.clientY ?? (e.changedTouches ? e.changedTouches[0].clientY : 0);
 
     if (this.onDragEnd) {
@@ -187,6 +225,7 @@ class MobileDragAndDrop {
 
   /**
    * Handles auto-scrolling when dragging near the screen edges.
+   * Uses a fixed scroll margin but relies on the pointer event rather than absolute pixel definitions for drop zones.
    * @param {Event} e - The event object.
    */
   handleAutoScroll(e) {
@@ -196,35 +235,21 @@ class MobileDragAndDrop {
 
     clearInterval(this.scrollInterval);
 
-    let clientY = e.clientY ?? (e.touches ? e.touches[0].clientY : 0);
+    const clientY = e.clientY ?? (e.touches ? e.touches[0].clientY : 0);
 
     if (clientY < scrollMargin) {
-      let speed = Math.max(
+      const speed = Math.max(
         maxScrollSpeed * (1 - clientY / scrollMargin),
         minScrollSpeed
       );
       this.scrollInterval = setInterval(() => window.scrollBy(0, -speed), 20);
     } else if (clientY > window.innerHeight - scrollMargin) {
-      let speed = Math.max(
+      const speed = Math.max(
         maxScrollSpeed *
           ((clientY - (window.innerHeight - scrollMargin)) / scrollMargin),
         minScrollSpeed
       );
       this.scrollInterval = setInterval(() => window.scrollBy(0, speed), 20);
     }
-  }
-
-  /**
-   * Returns the element under the given coordinates, even inside Shadow DOM.
-   * @param {number} x - X coordinate.
-   * @param {number} y - Y coordinate.
-   * @returns {HTMLElement|null} - The hovered element.
-   */
-  getElementFromPoint(x, y) {
-    let el = document.elementFromPoint(x, y);
-    if (el && el.shadowRoot) {
-      return el.shadowRoot.elementFromPoint(x, y) || el;
-    }
-    return el;
   }
 }
