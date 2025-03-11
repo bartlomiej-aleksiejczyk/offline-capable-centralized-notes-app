@@ -27,7 +27,6 @@
   }
 
   let todos = $state(parseTodos(selectedNote.content));
-  $inspect(todos);
 
   function toggleTodo(index) {
     debounceSave();
