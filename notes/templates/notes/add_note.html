@@ -6,7 +6,7 @@
 {% endblock title %}
 
 {% block page_specific_content %}
-    <div up-main class="bg-background p-6 md:min-w-150" data-popover-main-content>
+    <div up-main class="bg-background p-6 md:min-w-175 min-w-[95vw]" data-popover-main-content>
         <h2>Add a New Note</h2>
 
         <form  action={% url 'notes:add_note' %} method="POST" class="space-y-4" data-popover-form data-popover-follow-redirect>
