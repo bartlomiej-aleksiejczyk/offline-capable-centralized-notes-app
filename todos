@@ -1,19 +1,4 @@
-===
-FIRST_STAGE
-===
-
-===
-SECOND_STAGE
-===
-
-===
-NON_IMPORTANT
-===
-# TODO: add button icon change on collapse/expand, make button header-wide
 # TODO: Add animations to actions like collapse remove add
 # TODO: Add loading spinner to all actions
-# TODO: use htmx/jquery/own solution for better user interactivity, remove full page reload
 # TODO: fix note ordering problem in directory view
-# TODO: Add drag and drop note list sorting
-# TODO: add searchable dropdown
 # TODO: signed in user info, logout button elsewhere
