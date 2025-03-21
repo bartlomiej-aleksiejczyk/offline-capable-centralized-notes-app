@@ -229,4 +229,15 @@
     background: #f8f8f8;
     margin: 4px 0;
   }
+  input,
+  input[type="checkbox"] {
+    width: 1.75rem;
+    height: 1.75rem;
+    margin: 0;
+    display: inline;
+  }
+  input[type="checkbox"]:checked {
+    background-color: var(--color-primary);
+    accent-color: var(--color-primary);
+  }
 </style>
