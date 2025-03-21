@@ -165,7 +165,6 @@
     margin-bottom: 0.5rem;
     padding: 0.5rem;
     background: var(--color-background-light-contrast);
-    border-radius: 5px;
     cursor: grab;
     outline: 0px dashed #ccc;
     transition: background-color 1s ease-out;
