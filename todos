@@ -2,3 +2,17 @@
 # TODO: Add loading spinner to all actions
 # TODO: fix note ordering problem in directory view
 # TODO: signed in user info, logout button elsewhere
+---
+Planned changes features:
+- notes should be grouped by facets not categories
+- adapt markup refine lib
+- refine to-do components
+- add support for multiple files and copy paste
+- when vue gets full custom element support adapt vue
+- add enabled flag to the note entity ( for future calendar usage)
+- add special listvews as a way to display list of notes in a non standard way(calendar as visualisation of DatesNotes
+- add search bar for notes
+- improve security
+- add offline capability either by pwa or something wlse
+- add note revision control
+
